@@ -17,10 +17,31 @@ const Option: FC<PropsWithChildren<OptionProps>> = ({ children, active }) => (
   </div>
 )
 
+interface DividerProps {
+  className?: string
+}
+
+const Divider: FC<DividerProps> = ({ className }) => (
+  <svg
+    width="746"
+    height="4"
+    viewBox="0 0 746 4"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M-1.74846e-07 2C12.4333 2.13333 24.8667 2.26 37.3 2.38C149.2 3.45999 261.1 3.99998 373 3.99997C484.9 3.99996 596.8 3.45995 708.7 2.37994C721.133 2.25994 733.567 2.13327 746 1.99993C733.567 1.8666 721.133 1.73994 708.7 1.61994C596.8 0.539948 484.9 -4.23913e-05 373 -3.26087e-05C261.1 -2.28261e-05 149.2 0.539987 37.3 1.62C24.8667 1.74 12.4333 1.86667 -1.74846e-07 2Z"
+      fill="white"
+    />
+  </svg>
+)
+
 const Form: FC = () => (
   <div className="bg-foreground">
-    <div className="container pt-24 flex flex-col items-center">
-      <h2 className="text-8xl font-bold text-background">
+    <div className="container flex flex-col items-center bg-radial-[50%_100%_at_top_center] from-primary/26 to-transparent">
+      <Divider className="w-3/5" />
+      <h2 className="text-8xl font-bold text-background pt-24">
         E ai, bora <span className="text-primary">iatizar?</span>
       </h2>
       <p className="text-sm w-3/5 text-balance text-background text-center">
