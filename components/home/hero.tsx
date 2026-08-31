@@ -18,6 +18,7 @@ import {
   DataTexture,
   LinearFilter,
   LinearMipmapLinearFilter,
+  MathUtils,
   Matrix4,
   RepeatWrapping,
   SRGBColorSpace,
@@ -169,11 +170,16 @@ const useBackdrop = () =>
   }, [])
 
 /**
- * Resolution of the grain textures, and how many times they tile across the
- * model's UVs — raise the repeat for finer grain, lower it for coarser.
+ * Resolution of the grain textures, and how they tile across the model's UVs.
+ * The two maps deliberately tile at different rates, with the normals turned
+ * against the roughness, so the two patterns only line up again every 35
+ * tiles — long past the edge of the model, which is what stops a repeat this
+ * tight from reading as a printed pattern.
  */
 const GRAIN_SIZE = 256
-const GRAIN_REPEAT = 16
+const GRAIN_ROUGHNESS_REPEAT = 5
+const GRAIN_NORMAL_REPEAT = 7
+const GRAIN_NORMAL_ROTATION = 0.7
 
 /** How steep the grain's slopes are before they get encoded as normals. */
 const GRAIN_RELIEF = 5
@@ -211,7 +217,9 @@ const noiseField = (size: number) => {
     }
   }
 
-  const octaves = [octave(8, 1), octave(24, 2), octave(64, 3)]
+  /* Fine periods on purpose: at this size the texture is minified hard, and
+     coarse octaves are exactly the blobs that survive to look repetitive. */
+  const octaves = [octave(32, 1), octave(88, 2), octave(200, 3)]
   const field = new Float32Array(size * size)
 
   for (let y = 0; y < size; y++) {
@@ -255,8 +263,9 @@ const useGrain = () =>
         normals[i + 3] = 255
 
         /* Multiplied onto each material's own roughness, so this only ever
-           polishes patches rather than setting the overall finish. */
-        const patch = (0.74 + height(x, y) * 0.26) * 255
+           polishes patches rather than setting the overall finish. The wider
+           the range, the more the highlights break up. */
+        const patch = (0.6 + height(x, y) * 0.4) * 255
         roughness[i] = patch
         roughness[i + 1] = patch
         roughness[i + 2] = patch
@@ -264,11 +273,13 @@ const useGrain = () =>
       }
     }
 
-    const toTexture = (data: Uint8Array) => {
+    const toTexture = (data: Uint8Array, repeat: number, rotation = 0) => {
       const texture = new DataTexture(data, size, size)
       texture.wrapS = RepeatWrapping
       texture.wrapT = RepeatWrapping
-      texture.repeat.set(GRAIN_REPEAT, GRAIN_REPEAT)
+      texture.repeat.set(repeat, repeat)
+      texture.center.set(0.5, 0.5)
+      texture.rotation = rotation
       texture.magFilter = LinearFilter
       texture.minFilter = LinearMipmapLinearFilter
       texture.generateMipmaps = true
@@ -277,7 +288,14 @@ const useGrain = () =>
       return texture
     }
 
-    return { normalMap: toTexture(normals), roughnessMap: toTexture(roughness) }
+    return {
+      normalMap: toTexture(
+        normals,
+        GRAIN_NORMAL_REPEAT,
+        GRAIN_NORMAL_ROTATION
+      ),
+      roughnessMap: toTexture(roughness, GRAIN_ROUGHNESS_REPEAT),
+    }
   }, [])
 
 /**
@@ -389,19 +407,25 @@ const useLockRig = (base: Mesh, shackle: Mesh) =>
     }
   }, [base, shackle])
 
-/** Faces meeting more sharply than this keep their own normals. */
-const CREASE_ANGLE = Math.PI / 3
+/**
+ * Faces meeting more sharply than this keep their own normals. Everything on
+ * the body is a bevel — its sharpest edge is only 60° — so this sits above
+ * that and rounds all of them off, while the 90° cuts at the ends of the
+ * shackle's legs stay crisp.
+ */
+const CREASE_ANGLE = MathUtils.degToRad(75)
 
 /**
- * Re-shades a mesh smoothly. The GLB stores the shackle flat shaded — 1416
- * vertices over 360 distinct positions, every facet holding its own normal,
- * neighbours disagreeing by 33° on average — and a mirror finish draws every
- * one of those seams. Averaging the normals of faces that meet gently, while
- * leaving anything sharper alone, smooths the tube without melting the flat
- * cut at the end of each leg.
+ * Re-shades a mesh smoothly. The GLB is exported flat shaded — the shackle
+ * holds 1416 vertices over 360 distinct positions, every facet carrying its
+ * own normal — and a shiny finish draws every one of those seams, which is
+ * what makes each step around a curve or a bevel visible. Averaging the
+ * normals of faces that meet gently, while leaving anything sharper alone,
+ * rounds the steps off without melting genuine edges.
  *
- * The silhouette needs no help: at this size its facets land at about a third
- * of a pixel, so it was only ever the shading that gave the low poly away.
+ * The silhouettes need no help: at this size their facets land at about a
+ * third of a pixel, so it was only ever the shading that gave the low poly
+ * away.
  */
 const useSmoothGeometry = (geometry: BufferGeometry) =>
   useMemo(() => {
@@ -470,6 +494,7 @@ const HangingLock: FC = () => {
   /* Note the GLB spells the shackle node "Shacle". */
   const rig = useLockRig(nodes.Base, nodes.Shacle)
   const shackle = useSmoothGeometry(nodes.Shacle.geometry)
+  const base = useSmoothGeometry(nodes.Base.geometry)
   const grain = useGrain()
   const size = useThree((state) => state.size)
   const reducedMotion = useReducedMotion()
@@ -541,24 +566,25 @@ const HangingLock: FC = () => {
                 />
               </mesh>
 
-              {/* Base — closer to dark graphite than dead matte rubber: some
-                  metalness and a tighter clearcoat so it catches the studio
-                  instead of swallowing it, with the grain fine enough to read
-                  as a moulded surface rather than a pattern. */}
+              {/* Base — nearly black, with the form carried by highlights
+                  rather than by lit surface. The clearcoat is a dielectric
+                  layer, so its specular stays white however dark the body
+                  underneath goes: that is what keeps the accents bright while
+                  the body itself drops away. */}
               <mesh
-                geometry={nodes.Base.geometry}
+                geometry={base}
                 position={nodes.Base.position}
               >
                 <meshPhysicalMaterial
-                  color="#0b0c10"
-                  metalness={0.35}
-                  roughness={0.62}
+                  color="#07080b"
+                  metalness={0.3}
+                  roughness={0.55}
                   roughnessMap={grain.roughnessMap}
                   normalMap={grain.normalMap}
-                  normalScale={[0.45, 0.45]}
-                  clearcoat={0.35}
-                  clearcoatRoughness={0.55}
-                  envMapIntensity={1.15}
+                  normalScale={[0.4, 0.4]}
+                  clearcoat={0.45}
+                  clearcoatRoughness={0.35}
+                  envMapIntensity={1.3}
                 />
               </mesh>
             </group>
