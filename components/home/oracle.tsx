@@ -1,5 +1,7 @@
+"use client"
+
 import Image from "next/image"
-import { FC, ReactNode } from "react"
+import { FC, ReactNode, useEffect, useRef } from "react"
 
 import eyeBack from "@/public/eye/back.png"
 import eyePupil from "@/public/eye/pupil.png"
@@ -143,9 +145,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint1_radial_18_497"
@@ -155,9 +157,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint2_radial_18_497"
@@ -167,9 +169,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint3_radial_18_497"
@@ -179,9 +181,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint4_radial_18_497"
@@ -191,9 +193,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint5_radial_18_497"
@@ -203,9 +205,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint6_radial_18_497"
@@ -215,9 +217,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint7_radial_18_497"
@@ -227,9 +229,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint8_radial_18_497"
@@ -239,9 +241,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint9_radial_18_497"
@@ -251,9 +253,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint10_radial_18_497"
@@ -263,9 +265,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint11_radial_18_497"
@@ -275,9 +277,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint12_radial_18_497"
@@ -287,9 +289,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint13_radial_18_497"
@@ -299,9 +301,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint14_radial_18_497"
@@ -311,9 +313,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint15_radial_18_497"
@@ -323,9 +325,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint16_radial_18_497"
@@ -335,9 +337,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint17_radial_18_497"
@@ -347,9 +349,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint18_radial_18_497"
@@ -359,9 +361,9 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
       <radialGradient
         id="paint19_radial_18_497"
@@ -371,26 +373,101 @@ const Circles: FC = () => (
         gradientUnits="userSpaceOnUse"
         gradientTransform="translate(602 602) rotate(60) scale(608.911)"
       >
-        <stop stopColor="#2934D1" stop-opacity="0.26" />
+        <stop stopColor="#2934D1" stopOpacity="0.26" />
         <stop offset="0.5" stopColor="#2934D1" />
-        <stop offset="1" stopColor="#2934D1" stop-opacity="0" />
+        <stop offset="1" stopColor="#2934D1" stopOpacity="0" />
       </radialGradient>
     </defs>
   </svg>
 )
 
+// The ring in border.png opens a hole of radius 218/810 of its own width, so at
+// w-[405] the socket has 109 of radius. The pupil travels until its own center
+// reaches that rim, which tucks most of it under the ring at full deflection.
+const PUPIL_TRAVEL = 109
+
+// Radius of the eyeball the pupil is painted on. Larger than PUPIL_TRAVEL so
+// the pupil never reaches the sphere's silhouette, where it would vanish.
+const SPHERE = 150
+
+// Distance from the viewer to the eye, for the perspective shrink. Deliberately
+// close, so the pupil visibly recedes as it swings out instead of staying flat.
+const VIEW = 200
+
+// How far the pointer has to be for the eye to look all the way over.
+const reach = () => Math.max(window.innerWidth, window.innerHeight) / 2
+
 const Eye: FC = () => {
+  const border = useRef<HTMLImageElement>(null)
+  const pupil = useRef<HTMLImageElement>(null)
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return
+
+    const target = { x: 0, y: 0 }
+    const at = { x: 0, y: 0 }
+    let frame = 0
+
+    // The border never moves, so its box gives the socket center even while the
+    // page scrolls or the pupil is off to one side.
+    const look = (event: PointerEvent) => {
+      const box = border.current?.getBoundingClientRect()
+      if (!box) return
+
+      const dx = event.clientX - (box.left + box.width / 2)
+      const dy = event.clientY - (box.top + box.height / 2)
+      const distance = Math.hypot(dx, dy)
+      if (!distance) return
+
+      const pull = (Math.min(distance, reach()) / reach()) * PUPIL_TRAVEL
+      target.x = (dx / distance) * pull
+      target.y = (dy / distance) * pull
+      if (!frame) frame = requestAnimationFrame(follow)
+    }
+
+    // A disc riding on a sphere: turning the eyeball by `tilt` foreshortens the
+    // pupil along the direction it travelled, leaving it round across that axis,
+    // and carries it `sunk` further from the viewer, which shrinks it.
+    const follow = () => {
+      at.x += (target.x - at.x) * 0.12
+      at.y += (target.y - at.y) * 0.12
+
+      const drift = Math.hypot(at.x, at.y)
+      const tilt = Math.asin(Math.min(drift / SPHERE, 1))
+      const squash = Math.cos(tilt)
+      const sunk = SPHERE * (1 - squash)
+      const scale = VIEW / (VIEW + sunk)
+      const axis = (Math.atan2(at.y, at.x) * 180) / Math.PI
+
+      if (pupil.current)
+        pupil.current.style.transform =
+          `translate(${at.x}px, ${at.y}px) scale(${scale}) ` +
+          `rotate(${axis}deg) scaleX(${squash}) rotate(${-axis}deg)`
+
+      const settled = Math.hypot(target.x - at.x, target.y - at.y) < 0.05
+      frame = settled ? 0 : requestAnimationFrame(follow)
+    }
+
+    window.addEventListener("pointermove", look)
+    return () => {
+      window.removeEventListener("pointermove", look)
+      cancelAnimationFrame(frame)
+    }
+  }, [])
+
   const className = "absolute top-1/2 left-1/2 -translate-1/2"
 
   return (
     <>
       <Image className={`${className} w-[237]`} src={eyeBack} alt="Eye Back" />
       <Image
-        className={`${className} w-[174]`}
+        ref={pupil}
+        className={`${className} w-[174] will-change-transform`}
         src={eyePupil}
         alt="Eye Pupil"
       />
       <Image
+        ref={border}
         className={`${className} w-[405]`}
         src={eyeBorder}
         alt="Eye Border"
