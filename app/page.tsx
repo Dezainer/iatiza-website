@@ -1,4 +1,5 @@
 import Header from "@/components/app/header"
+import Cases from "@/components/home/cases"
 import GraphLine from "@/components/home/graph-line"
 import Hero from "@/components/home/hero"
 import MainCase from "@/components/home/main-case"
@@ -15,6 +16,7 @@ export default function Home() {
         <Hero />
         <Method />
         <MainCase />
+        <Cases />
       </div>
     </>
   )
