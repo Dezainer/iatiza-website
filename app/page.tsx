@@ -4,6 +4,7 @@ import GraphLine from "@/components/home/graph-line"
 import Hero from "@/components/home/hero"
 import MainCase from "@/components/home/main-case"
 import Method from "@/components/home/method"
+import Oracle from "@/components/home/oracle"
 
 export default function Home() {
   return (
@@ -17,6 +18,7 @@ export default function Home() {
         <Method />
         <MainCase />
         <Cases />
+        <Oracle />
       </div>
     </>
   )
