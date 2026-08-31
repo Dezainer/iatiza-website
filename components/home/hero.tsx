@@ -88,7 +88,7 @@ const HOOK_STROKE_BOTTOM = 250
  * shrinking this much stops reading as "hooked on": the arch stops clearing
  * the letter.
  */
-const LOCK_HEIGHT = 400
+const LOCK_HEIGHT = 375
 
 /**
  * How much taller than the wordmark the canvas is, so a lock this size can
@@ -115,6 +115,66 @@ const SWING_START_ANGLE = 0.26
  * so it nudges rather than resonates, and the lock never quite settles.
  */
 const BREEZE = 0.35
+
+type Spring = { value: number; velocity: number }
+
+/** One semi-implicit Euler step of a damped spring towards a target. */
+const advance = (
+  spring: Spring,
+  target: number,
+  hz: number,
+  damping: number,
+  step: number,
+) => {
+  const omega = 2 * Math.PI * hz
+
+  spring.velocity +=
+    (-(omega ** 2) * (spring.value - target) -
+      2 * damping * omega * spring.velocity) *
+    step
+  spring.value += spring.velocity * step
+}
+
+/* -------------------------------------------------------------------------
+ * Opening
+ * ---------------------------------------------------------------------- */
+
+/**
+ * The GLB is authored open: its short leg (at z −0.669) floats 0.097 above the
+ * body while the long leg (z +0.669) is still 0.092 inside it. So closing is
+ * just lifting the body until it swallows the short leg, and opening is
+ * letting it fall back to where the model was built — which is as far as it
+ * can drop before the long leg would let go as well.
+ */
+const CLOSED_LIFT = 0.45
+
+/** The long leg keeps hold of the body, so that is what the body turns around. */
+const HINGE_Z = 0.669
+
+/** How far the body ends up swung off the hinge — it overshoots to about 82°
+ *  on the way out before ringing back down to this. */
+const OPEN_YAW = MathUtils.degToRad(60)
+
+/** How much of the drop has to be done before the short leg is clear. */
+const TURN_CLEARANCE = 0.55
+
+/**
+ * The drop is stiff and lands; the turn is loose on the way out so it rings,
+ * and firm on the way back because closing a lock is something you do to it
+ * rather than something it does on its own. Left as loose as the swing out,
+ * closing would take ten seconds to stop ringing before the body could rise.
+ */
+const DROP_HZ = 1.6
+const DROP_DAMPING = 0.65
+const TURN_HZ = 0.5
+const TURN_DAMPING = 0.3
+const TURN_RETURN_DAMPING = 0.9
+
+/**
+ * How hard the body's weight, once it is out to one side, pulls the whole lock
+ * over on its hook. Set to 0 to keep the two motions entirely independent.
+ */
+const BODY_WEIGHT_SHIFT = 1.6
 
 const useReducedMotion = () => {
   const [reduced, setReduced] = useState(false)
@@ -503,13 +563,57 @@ const HangingLock: FC = () => {
   const angle = useRef(SWING_START_ANGLE)
   const angularVelocity = useRef(0)
 
+  const [open, setOpen] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const body = useRef<Group>(null)
+  const lift = useRef<Spring>({ value: CLOSED_LIFT, velocity: 0 })
+  const turn = useRef<Spring>({ value: 0, velocity: 0 })
+
+  useEffect(() => {
+    if (!hovered) return
+
+    document.body.style.cursor = "pointer"
+    return () => {
+      document.body.style.cursor = ""
+    }
+  }, [hovered])
+
   /* The canvas covers exactly the wordmark's box and its camera is orthographic
      at zoom 1, so one world unit is one pixel — which makes one viewBox unit
      this many world units. */
   const unit = size.width / VIEW_WIDTH
 
   useFrame((state, delta) => {
-    if (!swing.current) return
+    if (!swing.current || !body.current) return
+
+    /* The clamp keeps a dropped frame from launching anything. */
+    const step = Math.min(delta, 1 / 30)
+
+    /* Opening runs in two beats: the body drops, and only once it is clear of
+       the short leg can it turn on the long one. Closing runs them backwards —
+       it has to line up with the short leg again before it can rise onto it. */
+    const clear = lift.current.value <= CLOSED_LIFT * (1 - TURN_CLEARANCE)
+    const lined =
+      Math.abs(turn.current.value) < 0.05 &&
+      Math.abs(turn.current.velocity) < 0.5
+
+    advance(
+      turn.current,
+      open && clear ? OPEN_YAW : 0,
+      TURN_HZ,
+      open ? TURN_DAMPING : TURN_RETURN_DAMPING,
+      step,
+    )
+    advance(
+      lift.current,
+      open ? 0 : lined ? CLOSED_LIFT : lift.current.value,
+      DROP_HZ,
+      DROP_DAMPING,
+      step,
+    )
+
+    body.current.position.set(0, lift.current.value, HINGE_Z)
+    body.current.rotation.y = turn.current.value
 
     if (reducedMotion) {
       angle.current = 0
@@ -518,16 +622,23 @@ const HangingLock: FC = () => {
       return
     }
 
-    /* Damped pendulum, plus the draught. Semi-implicit Euler is plenty at this
-       frequency; the clamp keeps a dropped frame from launching the lock. */
-    const step = Math.min(delta, 1 / 30)
+    /* Where the body's weight has got to along the screen's horizontal: it
+       rides around the hinge, and then the whole lock is turned to face us. */
+    const swungX = -HINGE_Z * Math.sin(turn.current.value)
+    const swungZ = HINGE_Z * (1 - Math.cos(turn.current.value))
+    const lean =
+      swungX * Math.cos(ORIENTATION_Y) + swungZ * Math.sin(ORIENTATION_Y)
+
+    /* Damped pendulum, plus the draught, plus that weight hanging out to one
+       side. Semi-implicit Euler is plenty at this frequency. */
     const time = state.clock.elapsedTime
     const breeze =
       (Math.sin(time * 0.63) + Math.sin(time * 0.27 + 2.1)) * BREEZE
     const acceleration =
       -(SWING_OMEGA ** 2) * Math.sin(angle.current) -
       2 * SWING_DAMPING * SWING_OMEGA * angularVelocity.current +
-      breeze
+      breeze +
+      BODY_WEIGHT_SHIFT * lean
 
     angularVelocity.current += acceleration * step
     angle.current += angularVelocity.current * step
@@ -543,7 +654,16 @@ const HangingLock: FC = () => {
         0,
       ]}
     >
-      <group ref={swing} rotation={[0, 0, SWING_START_ANGLE]}>
+      <group
+        ref={swing}
+        rotation={[0, 0, SWING_START_ANGLE]}
+        onClick={(event) => {
+          event.stopPropagation()
+          setOpen((wasOpen) => !wasOpen)
+        }}
+        onPointerOver={() => setHovered(true)}
+        onPointerOut={() => setHovered(false)}
+      >
         <group scale={(unit * LOCK_HEIGHT) / rig.height}>
           {/* Hang the model off its hook point rather than its origin. */}
           <group position={[-rig.centerX, -rig.hookY, 0]}>
@@ -563,24 +683,36 @@ const HangingLock: FC = () => {
                 />
               </mesh>
 
-              {/* Base — nearly black, with the form carried by highlights
-                  rather than by lit surface. The clearcoat is a dielectric
-                  layer, so its specular stays white however dark the body
-                  underneath goes: that is what keeps the accents bright while
-                  the body itself drops away. */}
-              <mesh geometry={base} position={nodes.Base.position}>
-                <meshPhysicalMaterial
-                  color="#07080b"
-                  metalness={0.3}
-                  roughness={0.55}
-                  roughnessMap={grain.roughnessMap}
-                  normalMap={grain.normalMap}
-                  normalScale={[0.4, 0.4]}
-                  clearcoat={0.45}
-                  clearcoatRoughness={0.35}
-                  envMapIntensity={1.3}
-                />
-              </mesh>
+              {/* The body rides on the long leg, so this group sits on that
+                  leg's axis: lifting it slides the body up the shackle, turning
+                  it swings the body off to the side. */}
+              <group ref={body} position={[0, CLOSED_LIFT, HINGE_Z]}>
+                {/* Base — nearly black, with the form carried by highlights
+                    rather than by lit surface. The clearcoat is a dielectric
+                    layer, so its specular stays white however dark the body
+                    underneath goes: that is what keeps the accents bright
+                    while the body itself drops away. */}
+                <mesh
+                  geometry={base}
+                  position={[
+                    nodes.Base.position.x,
+                    nodes.Base.position.y,
+                    nodes.Base.position.z - HINGE_Z,
+                  ]}
+                >
+                  <meshPhysicalMaterial
+                    color="#07080b"
+                    metalness={0.3}
+                    roughness={0.55}
+                    roughnessMap={grain.roughnessMap}
+                    normalMap={grain.normalMap}
+                    normalScale={[0.4, 0.4]}
+                    clearcoat={0.45}
+                    clearcoatRoughness={0.35}
+                    envMapIntensity={1.3}
+                  />
+                </mesh>
+              </group>
             </group>
           </group>
         </group>
@@ -592,6 +724,16 @@ const HangingLock: FC = () => {
 /* -------------------------------------------------------------------------
  * Composition
  * ---------------------------------------------------------------------- */
+
+/**
+ * The canvas is a decorative overlay hundreds of pixels taller than the
+ * wordmark, so it stays pointer-events: none — otherwise it would swallow
+ * every click meant for whatever ends up underneath it. Listening on the page
+ * instead blocks nothing and still reaches the lock wherever it hangs,
+ * including the part below the wordmark's own box. R3F's own client-coordinate
+ * mode ignores the canvas's offset on the page, so the hit test computes it.
+ */
+const EVENT_SOURCE = typeof document === "undefined" ? undefined : document.body
 
 const LockedWordmark: FC = () => {
   const clipId = useId()
@@ -616,6 +758,20 @@ const LockedWordmark: FC = () => {
         orthographic
         gl={{ antialias: true, toneMappingExposure: 1.15 }}
         camera={{ position: [0, 0, 100], zoom: 1, near: 0.1, far: 1000 }}
+        eventSource={EVENT_SOURCE}
+        onCreated={({ setEvents }) =>
+          setEvents({
+            compute: (event, state) => {
+              const canvas = state.gl.domElement.getBoundingClientRect()
+
+              state.pointer.set(
+                ((event.clientX - canvas.left) / canvas.width) * 2 - 1,
+                -((event.clientY - canvas.top) / canvas.height) * 2 + 1,
+              )
+              state.raycaster.setFromCamera(state.pointer, state.camera)
+            },
+          })
+        }
         style={{
           position: "absolute",
           top: 0,
