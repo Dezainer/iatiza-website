@@ -506,7 +506,7 @@ const Backlight: FC = () => (
     viewBox="0 0 1011 865"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    className="absolute top-1/2 left-1/2 -translate-1/2 blur-[156px]"
+    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-3/5 blur-[156px]"
   >
     <mask id="path-1-inside-1_90_70" fill="white">
       <ellipse
