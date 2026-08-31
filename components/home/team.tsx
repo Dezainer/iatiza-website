@@ -76,7 +76,7 @@ const Team: FC = () => (
       <div className="flex-1 h-full bg-radial-[100%_50%_at_left_center] from-primary to-transparent" />
       <div className="flex-1 h-full bg-radial-[100%_50%_at_right_center] from-primary to-transparent" />
     </div>
-    <div className="container flex pt-48 relative">
+    <div className="container flex pt-32 relative">
       <div className="flex-1 flex items-end">
         <Teammate
           height={666}
@@ -132,7 +132,7 @@ const Team: FC = () => (
           <br />
           <span className="text-background">pra abrir caminho</span>
         </h2>
-        <p className="text-background text-sm w-2/6">
+        <p className="text-background text-sm w-2/5">
           Um <b>time multidisciplinar pra te acompanhar em cada passo</b> da
           jornada, da implementação até o resultado final.
         </p>

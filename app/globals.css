@@ -37,6 +37,14 @@ p {
   line-height: 200%;
 }
 
+input {
+  padding: 0 24px;
+  outline: 0;
+}
+input::placeholder {
+  color: rgba(255, 255, 255, 0.26);
+}
+
 /* Glass — see components/app/glass.tsx for what each layer is doing.
    Kept in @layer components so Tailwind utilities passed through className
    (rounded-*, p-*, positioning) still win over these defaults. */

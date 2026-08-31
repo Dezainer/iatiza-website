@@ -1,5 +1,6 @@
 import Header from "@/components/app/header"
 import Cases from "@/components/home/cases"
+import Form from "@/components/home/form"
 import GraphLine from "@/components/home/graph-line"
 import Hero from "@/components/home/hero"
 import MainCase from "@/components/home/main-case"
@@ -21,6 +22,7 @@ export default function Home() {
         <Cases />
         <Oracle />
         <Team />
+        <Form />
       </div>
     </>
   )
