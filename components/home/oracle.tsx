@@ -394,6 +394,10 @@ const SPHERE = 150
 // close, so the pupil visibly recedes as it swings out instead of staying flat.
 const VIEW = 200
 
+// Perspective applied across the pupil itself. Lower values throw the near half
+// of the tilted disc further forward, bending it harder around the eyeball.
+const LENS = 400
+
 // How far the pointer has to be for the eye to look all the way over.
 const reach = () => Math.max(window.innerWidth, window.innerHeight) / 2
 
@@ -425,24 +429,27 @@ const Eye: FC = () => {
       if (!frame) frame = requestAnimationFrame(follow)
     }
 
-    // A disc riding on a sphere: turning the eyeball by `tilt` foreshortens the
-    // pupil along the direction it travelled, leaving it round across that axis,
-    // and carries it `sunk` further from the viewer, which shrinks it.
+    // A disc riding on a sphere. Turning the eyeball by `tilt` carries the pupil
+    // `sunk` further from the viewer, which shrinks it, and tips the disc itself
+    // about the axis across its travel: the trailing edge swings toward the
+    // viewer while the leading edge falls away behind the rim, so it reads as
+    // curved rather than as a flat ellipse sliding around.
     const follow = () => {
       at.x += (target.x - at.x) * 0.12
       at.y += (target.y - at.y) * 0.12
 
       const drift = Math.hypot(at.x, at.y)
       const tilt = Math.asin(Math.min(drift / SPHERE, 1))
-      const squash = Math.cos(tilt)
-      const sunk = SPHERE * (1 - squash)
+      const sunk = SPHERE * (1 - Math.cos(tilt))
       const scale = VIEW / (VIEW + sunk)
-      const axis = (Math.atan2(at.y, at.x) * 180) / Math.PI
+      const axisX = drift ? -at.y / drift : 0
+      const axisY = drift ? at.x / drift : 1
 
       if (pupil.current)
         pupil.current.style.transform =
           `translate(${at.x}px, ${at.y}px) scale(${scale}) ` +
-          `rotate(${axis}deg) scaleX(${squash}) rotate(${-axis}deg)`
+          `perspective(${LENS}px) ` +
+          `rotate3d(${axisX}, ${axisY}, 0, ${(tilt * 180) / Math.PI}deg)`
 
       const settled = Math.hypot(target.x - at.x, target.y - at.y) < 0.05
       frame = settled ? 0 : requestAnimationFrame(follow)
