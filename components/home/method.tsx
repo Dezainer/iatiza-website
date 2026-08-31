@@ -23,45 +23,41 @@ const STEPS: Step[] = [
     element: "1",
   },
   {
-    title: "Entendemos o negócio",
+    title: "Recriamos processos",
     description: (
       <>
-        Mergulhamos na sua operação, processos e dores reais{" "}
-        <b>antes de falar em tecnologia</b>. IA que não entende o negócio não
-        resolve nada.
+        Redesenhamos fluxos de trabalho com IA no centro, otimizando o que já
+        existe <b>em vez de empilhar ferramentas em cima do problema</b>.
       </>
     ),
     element: "2",
   },
   {
-    title: "Entendemos o negócio",
+    title: "Desenhamos missões",
     description: (
       <>
-        Mergulhamos na sua operação, processos e dores reais{" "}
-        <b>antes de falar em tecnologia</b>. IA que não entende o negócio não
-        resolve nada.
+        Transformamos experimentos em missões claras, com escopo e prazo
+        definidos, <b>nada de "projeto de IA" que nunca termina.</b>
       </>
     ),
     element: "3",
   },
   {
-    title: "Entendemos o negócio",
+    title: "Definimos indicadores",
     description: (
       <>
-        Mergulhamos na sua operação, processos e dores reais{" "}
-        <b>antes de falar em tecnologia</b>. IA que não entende o negócio não
-        resolve nada.
+        Cada missão tem métricas de negócio associadas.{" "}
+        <b>Se não dá pra medir impacto, não faz sentido</b> implementar.
       </>
     ),
     element: "4",
   },
   {
-    title: "Entendemos o negócio",
+    title: "Assistimos de perto",
     description: (
       <>
-        Mergulhamos na sua operação, processos e dores reais{" "}
-        <b>antes de falar em tecnologia</b>. IA que não entende o negócio não
-        resolve nada.
+        Monitoramos os resultados de perto e ajustamos a rota, porque{" "}
+        <b>IA não é projeto de "implementou e esqueceu".</b>
       </>
     ),
     element: "5",
@@ -91,7 +87,7 @@ const Method: FC = () => (
     </div>
     <div className="flex gap-2">
       {STEPS.map((step) => (
-        <div key={step.element} className="flex flex-col items-center">
+        <div key={step.element} className="flex-1 flex flex-col items-center">
           <Glass className="p-3 flex flex-col gap-2 relative h-80">
             <h3 className="text-2xl text-primary font-bold">{step.title}</h3>
             <p className="text-sm">{step.description}</p>
