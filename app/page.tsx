@@ -1,3 +1,4 @@
+import Footer from "@/components/app/footer"
 import Header from "@/components/app/header"
 import Cases from "@/components/home/cases"
 import Form from "@/components/home/form"
@@ -23,6 +24,7 @@ export default function Home() {
         <Oracle />
         <Team />
         <Form />
+        <Footer />
       </div>
     </>
   )
