@@ -5,6 +5,7 @@ import Hero from "@/components/home/hero"
 import MainCase from "@/components/home/main-case"
 import Method from "@/components/home/method"
 import Oracle from "@/components/home/oracle"
+import Team from "@/components/home/team"
 
 export default function Home() {
   return (
@@ -19,6 +20,7 @@ export default function Home() {
         <MainCase />
         <Cases />
         <Oracle />
+        <Team />
       </div>
     </>
   )
