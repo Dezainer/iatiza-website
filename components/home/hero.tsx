@@ -198,8 +198,7 @@ const noiseField = (size: number) => {
     }
 
     const wrap = (value: number) => ((value % period) + period) % period
-    const corner = (x: number, y: number) =>
-      lattice[wrap(y) * period + wrap(x)]
+    const corner = (x: number, y: number) => lattice[wrap(y) * period + wrap(x)]
     const ease = (t: number) => t * t * (3 - 2 * t)
 
     return (x: number, y: number) => {
@@ -209,8 +208,7 @@ const noiseField = (size: number) => {
       const y0 = Math.floor(fy)
       const u = ease(fx - x0)
       const v = ease(fy - y0)
-      const top =
-        corner(x0, y0) + (corner(x0 + 1, y0) - corner(x0, y0)) * u
+      const top = corner(x0, y0) + (corner(x0 + 1, y0) - corner(x0, y0)) * u
       const bottom =
         corner(x0, y0 + 1) + (corner(x0 + 1, y0 + 1) - corner(x0, y0 + 1)) * u
       return top + (bottom - top) * v
@@ -225,7 +223,9 @@ const noiseField = (size: number) => {
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       field[y * size + x] =
-        octaves[0](x, y) * 0.5 + octaves[1](x, y) * 0.34 + octaves[2](x, y) * 0.16
+        octaves[0](x, y) * 0.5 +
+        octaves[1](x, y) * 0.34 +
+        octaves[2](x, y) * 0.16
     }
   }
 
@@ -289,11 +289,7 @@ const useGrain = () =>
     }
 
     return {
-      normalMap: toTexture(
-        normals,
-        GRAIN_NORMAL_REPEAT,
-        GRAIN_NORMAL_ROTATION
-      ),
+      normalMap: toTexture(normals, GRAIN_NORMAL_REPEAT, GRAIN_NORMAL_ROTATION),
       roughnessMap: toTexture(roughness, GRAIN_ROUGHNESS_REPEAT),
     }
   }, [])
@@ -310,23 +306,27 @@ const Studio: FC = () => {
     <>
       <ambientLight intensity={0.15} />
       {/* Key, high and to the right, warm. */}
-      <directionalLight position={[6, 5, 6]} intensity={2.6} color="#fff5ea" />
+      <directionalLight position={[6, 5, 6]} intensity={3} color="#fff5ea" />
       {/* Fill from the left, cool and weak, so the shadow side keeps detail. */}
-      <directionalLight position={[-7, 1, 4]} intensity={0.75} color="#dbe6ff" />
+      <directionalLight position={[-7, 1, 4]} intensity={4} color="#dbe6ff" />
       {/* Rim from behind, which is what separates the black body from a white
           page instead of letting it go flat. */}
-      <directionalLight position={[-4, 3, -6]} intensity={1.6} />
+      <directionalLight position={[-4, 3, -6]} intensity={10} />
 
       <Environment resolution={512}>
         <mesh scale={100}>
           <sphereGeometry args={[1, 64, 64]} />
-          <meshBasicMaterial map={backdrop} side={BackSide} toneMapped={false} />
+          <meshBasicMaterial
+            map={backdrop}
+            side={BackSide}
+            toneMapped={false}
+          />
         </mesh>
 
         {/* Key softbox — the broad highlight running down the shackle. */}
         <Lightformer
           form="rect"
-          intensity={5}
+          intensity={0}
           color="#fff6ec"
           position={[6, 4, 4]}
           scale={[8, 12, 1]}
@@ -335,7 +335,7 @@ const Studio: FC = () => {
         {/* A narrow strip close in: the hard bright line that reads as polish. */}
         <Lightformer
           form="rect"
-          intensity={9}
+          intensity={50}
           position={[-5, 1, 5]}
           scale={[0.7, 10, 1]}
           target={[0, 0, 0]}
@@ -343,7 +343,7 @@ const Studio: FC = () => {
         {/* Overhead bank. */}
         <Lightformer
           form="rect"
-          intensity={3}
+          intensity={0}
           rotation-x={Math.PI / 2}
           position={[0, 9, 1]}
           scale={[14, 8, 1]}
@@ -351,7 +351,7 @@ const Studio: FC = () => {
         {/* Cool kicker from behind, to keep the dark half from going empty. */}
         <Lightformer
           form="rect"
-          intensity={2.5}
+          intensity={2}
           color="#cfe0ff"
           position={[-3, -2, -6]}
           scale={[8, 8, 1]}
@@ -551,10 +551,7 @@ const HangingLock: FC = () => {
               {/* Shackle — polished chrome. Not a perfect mirror: a little
                   roughness and a whisper of grain give the reflections an edge
                   to catch on, which is what stops chrome looking like paint. */}
-              <mesh
-                geometry={shackle}
-                position={nodes.Shacle.position}
-              >
+              <mesh geometry={shackle} position={nodes.Shacle.position}>
                 <meshStandardMaterial
                   color="#eceff4"
                   metalness={1}
@@ -571,10 +568,7 @@ const HangingLock: FC = () => {
                   layer, so its specular stays white however dark the body
                   underneath goes: that is what keeps the accents bright while
                   the body itself drops away. */}
-              <mesh
-                geometry={base}
-                position={nodes.Base.position}
-              >
+              <mesh geometry={base} position={nodes.Base.position}>
                 <meshPhysicalMaterial
                   color="#07080b"
                   metalness={0.3}
