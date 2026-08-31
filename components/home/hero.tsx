@@ -13,6 +13,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import { Environment, Lightformer, useGLTF } from "@react-three/drei"
 import {
   BackSide,
+  BufferAttribute,
   CanvasTexture,
   DataTexture,
   LinearFilter,
@@ -20,6 +21,8 @@ import {
   Matrix4,
   RepeatWrapping,
   SRGBColorSpace,
+  Vector3,
+  type BufferGeometry,
   type Group,
   type Mesh,
 } from "three"
@@ -165,9 +168,12 @@ const useBackdrop = () =>
     return texture
   }, [])
 
-/** Resolution of the grain textures, and how many times they tile. */
+/**
+ * Resolution of the grain textures, and how many times they tile across the
+ * model's UVs — raise the repeat for finer grain, lower it for coarser.
+ */
 const GRAIN_SIZE = 256
-const GRAIN_REPEAT = 7
+const GRAIN_REPEAT = 16
 
 /** How steep the grain's slopes are before they get encoded as normals. */
 const GRAIN_RELIEF = 5
@@ -383,6 +389,79 @@ const useLockRig = (base: Mesh, shackle: Mesh) =>
     }
   }, [base, shackle])
 
+/** Faces meeting more sharply than this keep their own normals. */
+const CREASE_ANGLE = Math.PI / 3
+
+/**
+ * Re-shades a mesh smoothly. The GLB stores the shackle flat shaded — 1416
+ * vertices over 360 distinct positions, every facet holding its own normal,
+ * neighbours disagreeing by 33° on average — and a mirror finish draws every
+ * one of those seams. Averaging the normals of faces that meet gently, while
+ * leaving anything sharper alone, smooths the tube without melting the flat
+ * cut at the end of each leg.
+ *
+ * The silhouette needs no help: at this size its facets land at about a third
+ * of a pixel, so it was only ever the shading that gave the low poly away.
+ */
+const useSmoothGeometry = (geometry: BufferGeometry) =>
+  useMemo(() => {
+    /* Non-indexed, so every triangle corner owns the normal written to it. */
+    const smooth = geometry.toNonIndexed()
+    const position = smooth.getAttribute("position")
+    const corners = position.count
+
+    const a = new Vector3()
+    const edge = new Vector3()
+    const other = new Vector3()
+
+    const faces = Array.from({ length: corners / 3 }, (_, face) => {
+      a.fromBufferAttribute(position, face * 3)
+      edge.fromBufferAttribute(position, face * 3 + 1).sub(a)
+      other.fromBufferAttribute(position, face * 3 + 2).sub(a)
+      return edge.cross(other).normalize().clone()
+    })
+
+    /* Corners sharing a position are the ones with a say in each other. */
+    const keys = new Array<string>(corners)
+    const sharing = new Map<string, number[]>()
+
+    for (let corner = 0; corner < corners; corner++) {
+      const key = [
+        position.getX(corner),
+        position.getY(corner),
+        position.getZ(corner),
+      ]
+        .map((value) => value.toFixed(4))
+        .join("|")
+
+      keys[corner] = key
+      const group = sharing.get(key)
+
+      if (group) group.push(corner)
+      else sharing.set(key, [corner])
+    }
+
+    const normals = new Float32Array(corners * 3)
+    const blended = new Vector3()
+    const limit = Math.cos(CREASE_ANGLE)
+
+    for (let corner = 0; corner < corners; corner++) {
+      const own = faces[(corner / 3) | 0]
+      blended.set(0, 0, 0)
+
+      for (const neighbour of sharing.get(keys[corner])!) {
+        const normal = faces[(neighbour / 3) | 0]
+        if (normal.dot(own) >= limit) blended.add(normal)
+      }
+
+      blended.normalize().toArray(normals, corner * 3)
+    }
+
+    smooth.setAttribute("normal", new BufferAttribute(normals, 3))
+
+    return smooth
+  }, [geometry])
+
 const HangingLock: FC = () => {
   const { nodes } = useGLTF("/lock.glb") as unknown as {
     nodes: { Base: Mesh; Shacle: Mesh }
@@ -390,6 +469,7 @@ const HangingLock: FC = () => {
 
   /* Note the GLB spells the shackle node "Shacle". */
   const rig = useLockRig(nodes.Base, nodes.Shacle)
+  const shackle = useSmoothGeometry(nodes.Shacle.geometry)
   const grain = useGrain()
   const size = useThree((state) => state.size)
   const reducedMotion = useReducedMotion()
@@ -447,7 +527,7 @@ const HangingLock: FC = () => {
                   roughness and a whisper of grain give the reflections an edge
                   to catch on, which is what stops chrome looking like paint. */}
               <mesh
-                geometry={nodes.Shacle.geometry}
+                geometry={shackle}
                 position={nodes.Shacle.position}
               >
                 <meshStandardMaterial
@@ -456,28 +536,29 @@ const HangingLock: FC = () => {
                   roughness={0.16}
                   roughnessMap={grain.roughnessMap}
                   normalMap={grain.normalMap}
-                  normalScale={[0.06, 0.06]}
+                  normalScale={[0.08, 0.08]}
                   envMapIntensity={1.4}
                 />
               </mesh>
 
-              {/* Base — moulded rubber: near black, matte, and grainy enough
-                  that the light crawls across it instead of sitting still. The
-                  faint clearcoat is the slight sheen worn rubber keeps. */}
+              {/* Base — closer to dark graphite than dead matte rubber: some
+                  metalness and a tighter clearcoat so it catches the studio
+                  instead of swallowing it, with the grain fine enough to read
+                  as a moulded surface rather than a pattern. */}
               <mesh
                 geometry={nodes.Base.geometry}
                 position={nodes.Base.position}
               >
                 <meshPhysicalMaterial
-                  color="#15171c"
-                  metalness={0}
-                  roughness={1}
+                  color="#0b0c10"
+                  metalness={0.35}
+                  roughness={0.62}
                   roughnessMap={grain.roughnessMap}
                   normalMap={grain.normalMap}
-                  normalScale={[0.6, 0.6]}
-                  clearcoat={0.16}
-                  clearcoatRoughness={0.85}
-                  envMapIntensity={0.9}
+                  normalScale={[0.45, 0.45]}
+                  clearcoat={0.35}
+                  clearcoatRoughness={0.55}
+                  envMapIntensity={1.15}
                 />
               </mesh>
             </group>
