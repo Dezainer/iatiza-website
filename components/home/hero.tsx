@@ -94,7 +94,7 @@ const LOCK_HEIGHT = 375
  * How much taller than the wordmark the canvas is, so a lock this size can
  * hang below the baseline without being clipped.
  */
-const CANVAS_HEIGHT = 1000
+const CANVAS_HEIGHT = 525
 
 /* -------------------------------------------------------------------------
  * Swing
@@ -109,6 +109,14 @@ const SWING_DAMPING = 0.06
 
 /** The lock arrives already in motion, as if it was just hung up (radians). */
 const SWING_START_ANGLE = 0.26
+
+/**
+ * How far off vertical the whole lock hangs at rest — it sits crooked on the
+ * letter, leaning its crown to the left and carrying the body out to the
+ * right. The swing is a pendulum around this angle rather than around
+ * vertical, so it settles back to crooked.
+ */
+const HANG_TILT = MathUtils.degToRad(10)
 
 /**
  * A wandering draught, in rad/s². Both frequencies sit well below SWING_OMEGA
@@ -646,13 +654,15 @@ const HangingLock: FC = () => {
   })
 
   return (
-    /* Pivot: the hook point, in world units, measured from the canvas centre. */
+    /* Pivot: the hook point, in world units, measured from the canvas centre,
+       tilted so everything below hangs crooked. */
     <group
       position={[
         HOOK_X * unit - size.width / 2,
         size.height / 2 - HOOK_Y * unit,
         0,
       ]}
+      rotation={[0, 0, HANG_TILT]}
     >
       <group
         ref={swing}
