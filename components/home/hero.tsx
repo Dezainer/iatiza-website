@@ -27,6 +27,7 @@ import {
   type Group,
   type Mesh,
 } from "three"
+import Button from "@/components/app/button"
 
 /* -------------------------------------------------------------------------
  * Wordmark
@@ -825,9 +826,24 @@ const LockedWordmark: FC = () => {
   )
 }
 
+const Explainer: FC = () => (
+  <div className="ml-[40%] pb-48 w-2/5 flex flex-col items-start gap-2">
+    <h1 className="text-4xl text-balance">
+      Iatize seu negócio e <b>abra portas para o seu crescimento</b>
+    </h1>
+    <p>
+      Analisamos o seu negócio de ponta a ponta, identificamos onde a IA gera
+      mais impacto e cuidamos de todo o projeto, do diagnóstico à implementação.{" "}
+      <b>Sem enrolação e sem jargão técnico, só resultado.</b>
+    </p>
+    <Button>Entender a Iatização</Button>
+  </div>
+)
+
 const Hero: FC = () => (
   <div className="container pt-16">
     <LockedWordmark />
+    <Explainer />
   </div>
 )
 

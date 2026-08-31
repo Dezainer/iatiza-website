@@ -26,3 +26,11 @@ body {
   color: var(--foreground);
   font-family: var(--font-poppins), sans-serif;
 }
+
+* {
+  line-height: 125%;
+}
+
+p {
+  line-height: 200%;
+}
