@@ -34,3 +34,53 @@ body {
 p {
   line-height: 200%;
 }
+
+/* Glass — see components/app/glass.tsx for what each layer is doing.
+   Kept in @layer components so Tailwind utilities passed through className
+   (rounded-*, p-*, positioning) still win over these defaults. */
+@layer components {
+  .glass {
+    /* A stacking context, so the two layers below sit behind this element's
+       own content and nothing else. Deliberately not `isolation: isolate`:
+       that would make this a backdrop root and blind both layers to the page. */
+    position: relative;
+    z-index: 0;
+    border-radius: var(--glass-radius);
+    box-shadow: var(--glass-outer);
+  }
+
+  .glass::before,
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* Refraction. Transparent wherever url() backdrop filters are unsupported,
+     which leaves the frost layer below looking at the untouched page. */
+  .glass::before {
+    z-index: -2;
+    /* No hand-written -webkit- prefix here: Lightning CSS merges the two
+       declarations and emits only the prefixed one, which Firefox ignores.
+       Left alone, it prefixes correctly on its own. */
+    backdrop-filter: var(--glass-refraction);
+  }
+
+  /* Frost, tint and light, applied over the refracted image. */
+  .glass::after {
+    z-index: -1;
+    background: var(--glass-tint);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    box-shadow: var(--glass-inner);
+  }
+
+  /* Filter definitions only — never painted, never part of the layout. */
+  .glass-defs {
+    position: absolute;
+    width: 0;
+    height: 0;
+    overflow: hidden;
+  }
+}

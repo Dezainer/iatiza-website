@@ -85,14 +85,15 @@ const Method: FC = () => (
         entendimento do negócio até o acompanhamento dos resultados.
       </p>
     </div>
-    <div className="flex gap-2">
+    <div className="flex gap-4">
       {STEPS.map((step) => (
         <div key={step.element} className="flex-1 flex flex-col items-center">
-          <Glass className="p-3 flex flex-col gap-2 relative h-80">
+          <Glass className="p-4 flex flex-col gap-2 relative h-80">
             <h3 className="text-2xl text-primary font-bold">{step.title}</h3>
             <p className="text-sm">{step.description}</p>
           </Glass>
-          <span className="text-[256px] font-bold text-primary -mt-36">
+          {/* Behind the pane, so the glass has something to bend and frost. */}
+          <span className="relative -z-10 text-[256px] font-bold text-primary -mt-40">
             {step.element}
           </span>
         </div>
