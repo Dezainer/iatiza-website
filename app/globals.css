@@ -3,7 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #000000;
-  --primary: #2937FD;
+  --primary: #2937fd;
 }
 
 @theme inline {
@@ -11,6 +11,7 @@
   --color-foreground: var(--foreground);
   --color-primary: var(--primary);
   --font-sans: var(--font-poppins);
+  --font-symbols: "Material Symbols Outlined";
 
   --container: 1200px;
 }
@@ -40,6 +41,22 @@ p {
    Kept in @layer components so Tailwind utilities passed through className
    (rounded-*, p-*, positioning) still win over these defaults. */
 @layer components {
+  /* Material Symbols. The glyph is looked up by ligature, so the element's
+     text is the icon name itself: <span className="symbol">play_arrow</span>.
+     Sized with font-size (text-* utilities), coloured with text-*. */
+  .symbol {
+    font-family: var(--font-symbols);
+    font-weight: normal;
+    font-variation-settings:
+      "FILL" 1,
+      "wght" 400,
+      "GRAD" 0,
+      "opsz" 48;
+    line-height: 1;
+    white-space: nowrap;
+    user-select: none;
+  }
+
   .glass {
     /* A stacking context, so the two layers below sit behind this element's
        own content and nothing else. Deliberately not `isolation: isolate`:

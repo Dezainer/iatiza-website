@@ -1,6 +1,8 @@
+"use client"
+
 import Glass from "@/components/app/glass"
 import Image from "next/image"
-import { FC } from "react"
+import { FC, useRef, useState } from "react"
 
 import avatar from "@/public/main-testimony-avatar.png"
 
@@ -20,40 +22,87 @@ const BackgroundElement: FC = () => (
   </svg>
 )
 
-const MainCase: FC = () => (
-  <div className="container flex flex-col items-center pt-12">
-    <div className="w-3/5">
-      <div className="flex flex-col items-center">
-        <h2 className="text-center font-bold">
-          <span className="text-4xl block h-2">Conheça alguns</span>
-          <br />
-          <span className="text-9xl text-primary block h-29">iatizados</span>
-        </h2>
-      </div>
-      <div className="relative">
-        <BackgroundElement />
-        <Glass className="p-4 flex flex-col gap-4" frost={4}>
-          <div className="relative">
-            <video src="/mock-testimony.mp4" controls={false} />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex-1 flex items-center gap-2">
-              <Image src={avatar} alt="Avatar" className="rounded-full w-11" />
-              <div className="flex flex-col">
-                <span className="font-bold">Camila Duarte</span>
-                <span className="text-xs">Ecosmart Varejo</span>
-              </div>
+const MainCase: FC = () => {
+  const video = useRef<HTMLVideoElement>(null)
+  const [playing, setPlaying] = useState(false)
+
+  // `playing` follows the media events rather than the click, so a rejected
+  // play() (autoplay policy, decode error) leaves the button showing play.
+  const toggle = () => {
+    const el = video.current
+    if (!el) return
+    if (el.paused) el.play().catch(() => {})
+    else el.pause()
+  }
+
+  return (
+    <div className="container flex flex-col items-center pt-12">
+      <div className="w-3/5">
+        <div className="flex flex-col items-center">
+          <h2 className="text-center font-bold">
+            <span className="text-4xl block h-2">Conheça alguns</span>
+            <br />
+            <span className="text-9xl text-primary block h-29">iatizados</span>
+          </h2>
+        </div>
+        <div className="relative">
+          <BackgroundElement />
+          <Glass className="p-4 flex flex-col gap-4" frost={4}>
+            <div className="relative">
+              <video
+                ref={video}
+                src="/mock-testimony.mp4"
+                playsInline
+                preload="metadata"
+                className="block w-full rounded-lg"
+                onPlay={() => setPlaying(true)}
+                onPause={() => setPlaying(false)}
+                onEnded={() => setPlaying(false)}
+              />
+              {/* The whole frame is the control: click anywhere to play or
+                pause. The icon only shows while paused. */}
+              <button
+                type="button"
+                onClick={toggle}
+                aria-label={
+                  playing
+                    ? "Pausar o depoimento de Camila Duarte"
+                    : "Reproduzir o depoimento de Camila Duarte"
+                }
+                className="absolute inset-0 flex items-center justify-center cursor-pointer"
+              >
+                <span
+                  className={`symbol text-7xl text-white drop-shadow-lg transition-opacity duration-300 ${
+                    playing ? "opacity-0" : "opacity-100"
+                  }`}
+                >
+                  play_arrow
+                </span>
+              </button>
             </div>
-            <p className="w-3/5 text-sm text-right text-balance">
-              Neste vídeo, <b>Camila</b> conta como identificamos os gargalos do
-              negócio, redesenhamos processos com IA e acompanhamos os
-              resultados mês a mês.
-            </p>
-          </div>
-        </Glass>
+            <div className="flex items-center justify-between">
+              <div className="flex-1 flex items-center gap-2">
+                <Image
+                  src={avatar}
+                  alt="Avatar"
+                  className="rounded-full w-11"
+                />
+                <div className="flex flex-col">
+                  <span className="font-bold">Camila Duarte</span>
+                  <span className="text-xs">Ecosmart Varejo</span>
+                </div>
+              </div>
+              <p className="w-3/5 text-sm text-right text-balance">
+                Neste vídeo, <b>Camila</b> conta como identificamos os gargalos
+                do negócio, redesenhamos processos com IA e acompanhamos os
+                resultados mês a mês.
+              </p>
+            </div>
+          </Glass>
+        </div>
       </div>
     </div>
-  </div>
-)
+  )
+}
 
 export default MainCase
