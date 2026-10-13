@@ -11,7 +11,12 @@ import {
   useTransform,
 } from "motion/react"
 
-import mockTeamate from "@/public/mock-teamate.png"
+import cristina from "@/public/team/cristina.png"
+import dionisio from "@/public/team/dionisio.png"
+import eduardo from "@/public/team/eduardo.png"
+import geovane from "@/public/team/geovane.png"
+import kassio from "@/public/team/kassio.png"
+import leticia from "@/public/team/leticia.png"
 
 type Teammate = {
   name: string
@@ -19,38 +24,41 @@ type Teammate = {
   picture: ImageProps["src"]
 }
 
-const TEAM: Teammate[] = [
-  {
-    name: "Dionisio Raony",
-    title: "Pica do crossfire",
-    picture: mockTeamate,
-  },
-  {
-    name: "Dionisio Raony",
-    title: "Pica do crossfire",
-    picture: mockTeamate,
-  },
-  {
-    name: "Dionisio Raony",
-    title: "Pica do crossfire",
-    picture: mockTeamate,
-  },
-  {
-    name: "Dionisio Raony",
-    title: "Pica do crossfire",
-    picture: mockTeamate,
-  },
-  {
-    name: "Dionisio Raony",
-    title: "Pica do crossfire",
-    picture: mockTeamate,
-  },
-  {
-    name: "Dionisio Raony",
-    title: "Pica do crossfire",
-    picture: mockTeamate,
-  },
+/* Listed left to right as they stand in the scene. Cristina and Letícia are
+   on the outer edges on purpose: their photos are not cut off at the sides,
+   so they suit the slots that bleed past the screen. */
+const LEFT: Teammate[] = [
+  { name: "Cristina", title: "Título aqui", picture: cristina },
+  { name: "Dionisio", title: "Título aqui", picture: dionisio },
+  { name: "Eduardo", title: "Título aqui", picture: eduardo },
 ]
+
+const RIGHT: Teammate[] = [
+  { name: "Geovane", title: "Título aqui", picture: geovane },
+  { name: "Kassio", title: "Título aqui", picture: kassio },
+  { name: "Letícia", title: "Título aqui", picture: leticia },
+]
+
+/**
+ * Width-to-height ratio of every figure's slot. The overlaps below were tuned
+ * against this box, and the photos all have slightly different crops, so each
+ * one is fitted into the same box (bottom-aligned) instead of setting its own
+ * width — otherwise a narrower photo would drag its neighbours sideways.
+ */
+const SLOT_RATIO = 1.5
+
+/** Per-slot height and overlap, from the outer edge in towards the centre. */
+const SLOTS: { depth: Depth; height: number; overlap: string }[] = [
+  { depth: 3, height: 600, overlap: "50" },
+  { depth: 2, height: 550, overlap: "120" },
+  { depth: 1, height: 475, overlap: "110" },
+]
+
+/** Written out in full so Tailwind can see the class names. */
+const OVERLAP_CLASS: Record<"left" | "right", Record<string, string>> = {
+  left: { "50": "-ml-90", "120": "-ml-130", "110": "-ml-120" },
+  right: { "50": "-mr-90", "120": "-mr-130", "110": "-mr-120" },
+}
 
 /* -------------------------------------------------------------------------
  * The reveal
@@ -164,8 +172,8 @@ const Teammate: FC<TeammateProps> = ({
       <Image
         src={picture}
         alt={name}
-        className={`w-auto ${invert ? "-scale-x-100" : ""}`}
-        style={{ height }}
+        className={`object-contain object-bottom ${invert ? "-scale-x-100" : ""}`}
+        style={{ height, width: height * SLOT_RATIO }}
       />
     </motion.div>
   )
@@ -260,65 +268,34 @@ const Team: FC = () => {
         </div>
         <div className="container flex pt-32 relative">
           <div className="flex-1 flex items-end">
-            <Teammate
-              depth={3}
-              progress={scrollYProgress}
-              height={666}
-              className="-ml-50"
-              name={TEAM[0].name}
-              title={TEAM[0].title}
-              picture={TEAM[0].picture}
-            />
-            <Teammate
-              depth={2}
-              progress={scrollYProgress}
-              height={620}
-              className="-ml-120"
-              name={TEAM[1].name}
-              title={TEAM[1].title}
-              picture={TEAM[1].picture}
-            />
-            <Teammate
-              depth={1}
-              progress={scrollYProgress}
-              height={570}
-              className="-ml-110"
-              name={TEAM[2].name}
-              title={TEAM[2].title}
-              picture={TEAM[2].picture}
-            />
+            {LEFT.map((teammate, index) => (
+              <Teammate
+                key={teammate.name}
+                {...teammate}
+                depth={SLOTS[index].depth}
+                height={SLOTS[index].height}
+                className={OVERLAP_CLASS.left[SLOTS[index].overlap]}
+                progress={scrollYProgress}
+              />
+            ))}
           </div>
           <div className="flex-1 flex items-end justify-end relative">
-            <Teammate
-              invert
-              depth={1}
-              progress={scrollYProgress}
-              height={570}
-              className="-mr-110"
-              name={TEAM[2].name}
-              title={TEAM[2].title}
-              picture={TEAM[2].picture}
-            />
-            <Teammate
-              invert
-              depth={2}
-              progress={scrollYProgress}
-              height={620}
-              className="-mr-120"
-              name={TEAM[1].name}
-              title={TEAM[1].title}
-              picture={TEAM[1].picture}
-            />
-            <Teammate
-              invert
-              depth={3}
-              progress={scrollYProgress}
-              height={666}
-              className="-mr-50"
-              name={TEAM[0].name}
-              title={TEAM[0].title}
-              picture={TEAM[0].picture}
-            />
+            {/* Mirrored: slots run from the centre back out to the edge, and
+                the photos are flipped so everyone faces the middle. */}
+            {RIGHT.map((teammate, index) => {
+              const slot = SLOTS[RIGHT.length - 1 - index]
+              return (
+                <Teammate
+                  key={teammate.name}
+                  {...teammate}
+                  invert
+                  depth={slot.depth}
+                  height={slot.height}
+                  className={OVERLAP_CLASS.right[slot.overlap]}
+                  progress={scrollYProgress}
+                />
+              )
+            })}
           </div>
           <Headline progress={scrollYProgress} />
         </div>
