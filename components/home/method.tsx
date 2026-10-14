@@ -65,7 +65,7 @@ const STEPS: Step[] = [
 ]
 
 const Method: FC = () => (
-  <div className="container flex flex-col gap-2">
+  <div id="metodo" className="container flex flex-col gap-2">
     <div className="flex items-end gap-4">
       <div className="flex-3 relative">
         <h2 className="text-8xl font-bold">

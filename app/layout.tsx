@@ -17,7 +17,7 @@ const poppins = Poppins({
 const MATERIAL_SYMBOLS =
   "https://fonts.googleapis.com/css2" +
   "?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" +
-  "&icon_names=volume_off,volume_up" +
+  "&icon_names=arrow_back,volume_off,volume_up" +
   "&display=block"
 
 export const metadata: Metadata = {
@@ -27,7 +27,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="pt-BR" className={`${poppins.variable} h-full antialiased`}>
+    /* suppressHydrationWarning: the home page's intro script sets data-intro
+       on <html> before React hydrates. See components/home/intro.tsx. */
+    <html
+      lang="pt-BR"
+      className={`${poppins.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link

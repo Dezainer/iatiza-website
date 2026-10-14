@@ -28,6 +28,7 @@ import {
   type Mesh,
 } from "three"
 import Button from "@/components/app/button"
+import { releaseIntro, showStage } from "@/components/home/intro"
 
 /* -------------------------------------------------------------------------
  * Wordmark
@@ -96,6 +97,14 @@ const LOCK_HEIGHT = 375
  * hang below the baseline without being clipped.
  */
 const CANVAS_HEIGHT = 525
+
+/**
+ * Where the "desbloqueie" hint starts, in viewBox units: just off the right of
+ * the lock's body, which hangs out to the right of the hook. Vertically
+ * centred on this point.
+ */
+const HINT_X = 450
+const HINT_Y = 350
 
 /* -------------------------------------------------------------------------
  * Swing
@@ -555,7 +564,12 @@ const useSmoothGeometry = (geometry: BufferGeometry) =>
     return smooth
   }, [geometry])
 
-const HangingLock: FC = () => {
+interface HangingLockProps {
+  open: boolean
+  onToggle: () => void
+}
+
+const HangingLock: FC<HangingLockProps> = ({ open, onToggle }) => {
   const { nodes } = useGLTF("/lock.glb") as unknown as {
     nodes: { Base: Mesh; Shacle: Mesh }
   }
@@ -572,11 +586,13 @@ const HangingLock: FC = () => {
   const angle = useRef(SWING_START_ANGLE)
   const angularVelocity = useRef(0)
 
-  const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState(false)
   const body = useRef<Group>(null)
   const lift = useRef<Spring>({ value: CLOSED_LIFT, velocity: 0 })
   const turn = useRef<Spring>({ value: 0, velocity: 0 })
+
+  /* Only mounts once the model has loaded. */
+  useEffect(showStage, [])
 
   useEffect(() => {
     if (!hovered) return
@@ -670,7 +686,7 @@ const HangingLock: FC = () => {
         rotation={[0, 0, SWING_START_ANGLE]}
         onClick={(event) => {
           event.stopPropagation()
-          setOpen((wasOpen) => !wasOpen)
+          onToggle()
         }}
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
@@ -748,9 +764,16 @@ const EVENT_SOURCE = typeof document === "undefined" ? undefined : document.body
 
 const LockedWordmark: FC = () => {
   const clipId = useId()
+  const [open, setOpen] = useState(false)
+
+  /* The first time it opens, the rest of the page comes in with it. */
+  const toggle = () => {
+    if (!open) releaseIntro()
+    setOpen(!open)
+  }
 
   return (
-    <div className="relative">
+    <div data-reveal="stage" className="relative">
       <svg
         viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
         fill="none"
@@ -798,7 +821,7 @@ const LockedWordmark: FC = () => {
         <Studio />
 
         <Suspense fallback={null}>
-          <HangingLock />
+          <HangingLock open={open} onToggle={toggle} />
         </Suspense>
       </Canvas>
 
@@ -822,21 +845,47 @@ const LockedWordmark: FC = () => {
           clipPath={`url(#${clipId})`}
         />
       </svg>
+
+      {/* Points at the lock until it has been opened once. A real button, so
+          the page can be unlocked without a pointer. */}
+      <button
+        type="button"
+        onClick={toggle}
+        className="intro-hint absolute flex -translate-y-1/2 cursor-pointer items-center gap-2 font-medium text-lg text-primary text-left"
+        style={{
+          left: `${(HINT_X / VIEW_WIDTH) * 100}%`,
+          top: `${(HINT_Y / VIEW_HEIGHT) * 100}%`,
+        }}
+      >
+        <span className="symbol text-3xl motion-safe:animate-[nudge_1.4s_ease-in-out_infinite]">
+          arrow_back
+        </span>
+        <span>
+          clique para
+          <br />
+          <u>
+            <b>desbloquear</b>
+          </u>
+        </span>
+      </button>
     </div>
   )
 }
 
 const Explainer: FC = () => (
-  <div className="ml-[40%] pb-48 w-2/5 flex flex-col items-start gap-2">
-    <h1 className="text-4xl text-balance">
+  <div
+    data-reveal="rest"
+    className="ml-[40%] pb-48 flex flex-col items-start gap-2"
+  >
+    <h1 className="text-4xl text-balance w-4/5">
       Iatize seu negócio e <b>abra portas para o seu crescimento</b>
     </h1>
-    <p>
+    <p className="w-4/6">
       Analisamos o seu negócio de ponta a ponta, identificamos onde a IA gera
-      mais impacto e cuidamos de todo o projeto, do diagnóstico à implementação.{" "}
-      <b>Sem enrolação e sem jargão técnico, só resultado.</b>
+      mais impacto e cuidamos de todo o projeto,{" "}
+      <b>do diagnóstico à implementação.</b>{" "}
     </p>
-    <Button>Entender a Iatização</Button>
+    <Button href="#metodo">Entender a Iatização</Button>
   </div>
 )
 

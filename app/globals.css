@@ -110,3 +110,56 @@ input::placeholder {
     overflow: hidden;
   }
 }
+
+/* In-page anchors glide rather than jump. */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Intro — the state lives on <html>, see components/home/intro.tsx. Hidden
+   content stays in the document; visibility rides along with the fade so it
+   also leaves the tab order, which keeps focus from scrolling the page while
+   it is locked. */
+html[data-intro] {
+  overflow: hidden;
+  /* Holds the scrollbar's place, so the page does not shift sideways when it
+     comes back. */
+  scrollbar-gutter: stable;
+}
+
+[data-reveal],
+.intro-hint {
+  transition:
+    opacity 900ms ease,
+    visibility 900ms;
+}
+
+html[data-intro="loading"] [data-reveal],
+html[data-intro="locked"] [data-reveal="rest"],
+html:not([data-intro="locked"]) .intro-hint {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Only fades in after the lock has had a moment on screen. */
+html[data-intro="locked"] .intro-hint {
+  transition-delay: 1200ms;
+}
+
+/* Once unlocked, let the lock get its body down and swung out before the rest
+   of the page follows. Only ever transitions this way: the rest is hidden from
+   first paint, so nothing is there to fade out. */
+html:not([data-intro]) [data-reveal="rest"] {
+  transition-duration: 1600ms;
+  transition-delay: 800ms;
+}
+
+@keyframes nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(-6px);
+  }
+}
