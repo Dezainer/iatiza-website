@@ -17,7 +17,7 @@ const poppins = Poppins({
 const MATERIAL_SYMBOLS =
   "https://fonts.googleapis.com/css2" +
   "?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" +
-  "&icon_names=arrow_back,volume_off,volume_up" +
+  "&icon_names=arrow_back,bolt,hub,query_stats,school,support_agent,visibility,volume_off,volume_up" +
   "&display=block"
 
 export const metadata: Metadata = {

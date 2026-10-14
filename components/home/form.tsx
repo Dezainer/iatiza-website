@@ -106,7 +106,7 @@ const Form: FC = () => {
   const [revenue, setRevenue] = useState<Revenue>(REVENUE[0])
 
   return (
-    <div className="bg-foreground">
+    <div id="contato" className="bg-foreground">
       {/* The divider and glow that open this section live at the foot of the
           team scene instead, so they travel with its pinned figures. This is
           positioned only so its content paints over that glow. */}

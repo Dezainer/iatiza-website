@@ -7,6 +7,7 @@ import Hero from "@/components/home/hero"
 import { IntroGate } from "@/components/home/intro"
 import Method from "@/components/home/method"
 import Oracle from "@/components/home/oracle"
+import Services from "@/components/home/services"
 import Team from "@/components/home/team"
 
 export default function Home() {
@@ -28,6 +29,7 @@ export default function Home() {
           <Method />
           <Cases />
           <Oracle />
+          <Services />
           <Team />
           <Form />
           <Footer />
