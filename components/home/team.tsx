@@ -179,6 +179,26 @@ const Teammate: FC<TeammateProps> = ({
   )
 }
 
+interface DividerProps {
+  className?: string
+}
+
+const Divider: FC<DividerProps> = ({ className }) => (
+  <svg
+    width="746"
+    height="4"
+    viewBox="0 0 746 4"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+  >
+    <path
+      d="M-1.74846e-07 2C12.4333 2.13333 24.8667 2.26 37.3 2.38C149.2 3.45999 261.1 3.99998 373 3.99997C484.9 3.99996 596.8 3.45995 708.7 2.37994C721.133 2.25994 733.567 2.13327 746 1.99993C733.567 1.8666 721.133 1.73994 708.7 1.61994C596.8 0.539948 484.9 -4.23913e-05 373 -3.26087e-05C261.1 -2.28261e-05 149.2 0.539987 37.3 1.62C24.8667 1.74 12.4333 1.86667 -1.74846e-07 2Z"
+      fill="white"
+    />
+  </svg>
+)
+
 /* -------------------------------------------------------------------------
  * Curtains
  *
@@ -302,6 +322,19 @@ const Team: FC = () => {
         <div className="absolute inset-0 flex z-4">
           <div className="flex-1 h-full bg-radial-[100%_50%_at_left_bottom] from-foreground to-transparent" />
           <div className="flex-1 h-full bg-radial-[100%_50%_at_right_bottom] from-foreground to-transparent" />
+        </div>
+        {/* The top of the form, hung off the bottom of the figures. On a
+            screen taller than the scene the figures stay pinned while the
+            rest of the section scrolls, so a divider living in the form
+            would drift away from them; anchored here, it rides along. It
+            spills over into the form, which paints its copy above it. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-full z-5 h-200"
+        >
+          <div className="container h-full flex flex-col items-center bg-radial-[50%_100%_at_top_center] from-primary/26 to-transparent">
+            <Divider className="w-3/5" />
+          </div>
         </div>
       </div>
       <Curtains progress={scrollYProgress} />
