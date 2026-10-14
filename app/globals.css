@@ -116,6 +116,36 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Scrollbar — a thin pill on a clear track, so it reads as part of the page
+   instead of a grey OS strip the glass panes refract against. Chromium and
+   Safari take the ::-webkit-* parts; Firefox only knows the standard pair, and
+   Chromium ignores the pseudo-elements once those are set, hence @supports. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track,
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  /* The transparent border insets the pill from the window edge. */
+  border: 3px solid transparent;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--primary) 65%, transparent) padding-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: color-mix(in srgb, var(--primary) 70%, transparent);
+}
+
+@supports not selector(::-webkit-scrollbar) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--primary) 35%, transparent)
+      transparent;
+  }
+}
+
 /* Intro — the state lives on <html>, see components/home/intro.tsx. Hidden
    content stays in the document; visibility rides along with the fade so it
    also leaves the tab order, which keeps focus from scrolling the page while
