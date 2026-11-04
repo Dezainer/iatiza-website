@@ -14,12 +14,28 @@
   --font-symbols: "Material Symbols Outlined";
 
   --container: 1200px;
+  /* Side padding of the container on phones. Full-bleed pieces (the wordmark,
+     the carousels) pull back out of it with -mx-gutter. */
+  --spacing-gutter: 1.25rem;
 }
 
 @utility container {
   width: 100%;
   max-width: var(--container);
   margin-inline: auto;
+
+  @media (width < 48rem) {
+    padding-inline: var(--spacing-gutter);
+  }
+}
+
+/* Horizontal carousels scroll by swipe; the bar would only eat into them. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 body {

@@ -68,7 +68,7 @@ const Option = <T extends string>({
     />
     {/* `outline` rather than `ring`, which would take over the box-shadow the
         glass uses for its rim. */}
-    <Glass className="py-3 px-4 flex-1 flex justify-center text-background font-bold uppercase text-sm peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-background">
+    <Glass className="py-3 px-2 md:px-4 flex-1 flex justify-center max-md:whitespace-nowrap text-background font-bold uppercase text-sm peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-background">
       <span
         className={`transition-opacity duration-200 ${checked ? "opacity-100" : "opacity-26"}`}
       >
@@ -85,6 +85,8 @@ interface OptionGroupProps<T extends string> {
   options: readonly T[]
   value: T
   onChange: (value: T) => void
+  /** Keep the options side by side on phones too, for short labels. */
+  inline?: boolean
 }
 
 const OptionGroup = <T extends string>({
@@ -93,8 +95,13 @@ const OptionGroup = <T extends string>({
   options,
   value,
   onChange,
+  inline,
 }: OptionGroupProps<T>) => (
-  <div role="radiogroup" aria-labelledby={labelledBy} className="flex gap-4">
+  <div
+    role="radiogroup"
+    aria-labelledby={labelledBy}
+    className={`flex gap-3 md:gap-4 ${inline ? "" : "max-md:flex-col"}`}
+  >
     {options.map((option) => (
       <Option
         key={option}
@@ -163,19 +170,22 @@ const Form: FC = () => {
           team scene instead, so they travel with its pinned figures. This is
           positioned only so its content paints over that glow. */}
       <div className="container relative flex flex-col items-center">
-        <h2 className="text-8xl font-bold text-background pt-24">
+        <h2 className="text-5xl md:text-8xl font-bold text-background max-md:text-center pt-24">
           E ai, bora <span className="text-primary">iatizar?</span>
         </h2>
-        <p className="text-sm w-3/5 text-balance text-background text-center">
+        <p className="text-sm md:w-3/5 text-balance text-background text-center max-md:pt-4">
           Selecione o tamanho da sua empresa e escolha um horário. Sem
           compromisso, sem enrolação,{" "}
           <b>só uma conversa pra entender se e como podemos ajudar</b>.
         </p>
-        <form action={formAction} className="w-3/5 flex flex-col gap-9 pt-12">
+        <form
+          action={formAction}
+          className="w-full md:w-3/5 flex flex-col gap-9 pt-12"
+        >
           <div className="flex flex-col gap-2">
             <h4
               id="headcount-question"
-              className="text-2xl font-bold text-background"
+              className="text-xl md:text-2xl font-bold text-background"
             >
               Quantas <span className="text-primary">pessoas</span> tem sua
               empresa?
@@ -184,6 +194,7 @@ const Form: FC = () => {
               name="headcount"
               labelledBy="headcount-question"
               options={HEADCOUNT}
+              inline
               value={headcount}
               onChange={setHeadcount}
             />
@@ -191,7 +202,7 @@ const Form: FC = () => {
           <div className="flex flex-col gap-2">
             <h4
               id="revenue-question"
-              className="text-2xl font-bold text-background"
+              className="text-xl md:text-2xl font-bold text-background"
             >
               Qual o <span className="text-primary">faturamento</span> da sua
               empresa?
@@ -207,12 +218,14 @@ const Form: FC = () => {
           <div className="flex flex-col gap-2">
             <h4
               id="email-question"
-              className="text-2xl font-bold text-background"
+              className="text-xl md:text-2xl font-bold text-background"
             >
               Seu melhor <span className="text-primary">email</span>:
             </h4>
-            <div className="flex gap-4">
-              <Glass className="flex-1">
+            <div className="flex max-md:flex-col gap-3 md:gap-4">
+              {/* flex-none on phones: stacked, flex-1 would make its basis 0 and
+                  override the height. */}
+              <Glass className="flex-1 max-md:flex-none max-md:h-12">
                 <input
                   type="email"
                   name="email"

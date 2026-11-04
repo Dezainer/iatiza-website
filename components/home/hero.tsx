@@ -1,7 +1,9 @@
 "use client"
 
 import {
+  CSSProperties,
   FC,
+  PropsWithChildren,
   Suspense,
   useEffect,
   useId,
@@ -29,6 +31,7 @@ import {
 } from "three"
 import Button from "@/components/app/button"
 import { releaseIntro, showStage } from "@/components/home/intro"
+import { MOBILE, useMediaQuery } from "@/lib/use-media-query"
 
 /* -------------------------------------------------------------------------
  * Wordmark
@@ -105,6 +108,73 @@ const CANVAS_HEIGHT = 525
  */
 const HINT_X = 450
 const HINT_Y = 350
+
+/* -------------------------------------------------------------------------
+ * Phones
+ *
+ * Too narrow for the word on one line, so it breaks as "Poten" / "cial" and
+ * the first line is drawn edge to edge. The second line keeps the same size,
+ * sits flush right at an ordinary line spacing, and the lock hangs down in
+ * front of it. The "o" stays on the first line, untouched, so every hook
+ * constant above still holds.
+ * ---------------------------------------------------------------------- */
+
+/** First letter of the second line: the "c". */
+const LINE_BREAK = 5
+
+/** Right edge of the "n", which ends the first line and so sets the width. */
+const MOBILE_VIEW_WIDTH = 729.02
+
+/**
+ * Where the second line's box starts. Its tallest marks — the dot of the "i",
+ * the "l" — then clear the first line's baseline (204) by a normal leading;
+ * the "P"'s descender reaches lower but sits left of where "cial" begins.
+ */
+const SECOND_LINE_Y = 250
+
+/**
+ * The lock is drawn half as big again on phones, where the word is broken up
+ * and the lock has the whole screen to hang in. It still hooks on the same
+ * point, so it grows downwards and out.
+ */
+const MOBILE_LOCK_HEIGHT = LOCK_HEIGHT * 1.25
+
+/**
+ * How far down the box reaches, so the lock's foot (about 685, more
+ * mid-swing) is inside it: the canvas is not clipped, and centring the box
+ * centres the lock along with the letters.
+ */
+const MOBILE_VIEW_HEIGHT = 740
+
+interface WordmarkLayout {
+  width: number
+  height: number
+  /** Viewbox units the canvas covers, from the top of the wordmark. */
+  canvasHeight: number
+  /** How tall the lock is drawn, in viewBox units. */
+  lockHeight: number
+  /** SVG transform for each letter. */
+  place: (index: number) => string | undefined
+}
+
+const DESKTOP_LAYOUT: WordmarkLayout = {
+  width: VIEW_WIDTH,
+  height: VIEW_HEIGHT,
+  canvasHeight: CANVAS_HEIGHT,
+  lockHeight: LOCK_HEIGHT,
+  place: () => undefined,
+}
+
+const MOBILE_LAYOUT: WordmarkLayout = {
+  width: MOBILE_VIEW_WIDTH,
+  height: MOBILE_VIEW_HEIGHT,
+  canvasHeight: MOBILE_VIEW_HEIGHT,
+  lockHeight: MOBILE_LOCK_HEIGHT,
+  place: (index) =>
+    index >= LINE_BREAK
+      ? `translate(${MOBILE_VIEW_WIDTH - VIEW_WIDTH} ${SECOND_LINE_Y})`
+      : undefined,
+}
 
 /* -------------------------------------------------------------------------
  * Swing
@@ -567,9 +637,18 @@ const useSmoothGeometry = (geometry: BufferGeometry) =>
 interface HangingLockProps {
   open: boolean
   onToggle: () => void
+  /** Width of the wordmark's viewBox, which the canvas spans. */
+  viewWidth: number
+  /** How tall to draw the lock, in the same units. */
+  lockHeight: number
 }
 
-const HangingLock: FC<HangingLockProps> = ({ open, onToggle }) => {
+const HangingLock: FC<HangingLockProps> = ({
+  open,
+  onToggle,
+  viewWidth,
+  lockHeight,
+}) => {
   const { nodes } = useGLTF("/lock.glb") as unknown as {
     nodes: { Base: Mesh; Shacle: Mesh }
   }
@@ -606,7 +685,7 @@ const HangingLock: FC<HangingLockProps> = ({ open, onToggle }) => {
   /* The canvas covers exactly the wordmark's box and its camera is orthographic
      at zoom 1, so one world unit is one pixel — which makes one viewBox unit
      this many world units. */
-  const unit = size.width / VIEW_WIDTH
+  const unit = size.width / viewWidth
 
   useFrame((state, delta) => {
     if (!swing.current || !body.current) return
@@ -691,7 +770,7 @@ const HangingLock: FC<HangingLockProps> = ({ open, onToggle }) => {
         onPointerOver={() => setHovered(true)}
         onPointerOut={() => setHovered(false)}
       >
-        <group scale={(unit * LOCK_HEIGHT) / rig.height}>
+        <group scale={(unit * lockHeight) / rig.height}>
           {/* Hang the model off its hook point rather than its origin. */}
           <group position={[-rig.centerX, -rig.hookY, 0]}>
             <group rotation={[0, ORIENTATION_Y, 0]}>
@@ -762,9 +841,18 @@ const HangingLock: FC<HangingLockProps> = ({ open, onToggle }) => {
  */
 const EVENT_SOURCE = typeof document === "undefined" ? undefined : document.body
 
-const LockedWordmark: FC = () => {
+/**
+ * `children` is the copy that comes in once the lock opens. On phones it
+ * shares a grid cell with the hint, so it fades up exactly where the hint
+ * fades out, and the wordmark is centred in what is left of the first screen.
+ * On desktop that wrapper is `display: contents` and the copy simply follows
+ * the wordmark.
+ */
+const LockedWordmark: FC<PropsWithChildren> = ({ children }) => {
   const clipId = useId()
   const [open, setOpen] = useState(false)
+  const layout = useMediaQuery(MOBILE) ? MOBILE_LAYOUT : DESKTOP_LAYOUT
+  const viewBox = `0 0 ${layout.width} ${layout.height}`
 
   /* The first time it opens, the rest of the page comes in with it. */
   const toggle = () => {
@@ -773,101 +861,132 @@ const LockedWordmark: FC = () => {
   }
 
   return (
-    <div data-reveal="stage" className="relative">
-      <svg
-        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        aria-label="Potencial"
-        className="block h-auto w-full"
-      >
-        {LETTERS.map((d, index) => (
-          <path key={index} d={d} fill={LETTER_FILL} />
-        ))}
-      </svg>
+    /* On phones this fills the first screen under the header (pt-8 plus a
+       24px line, and the hero's pt-8): the wordmark and its lock centred in
+       it, the hint and the copy at the bottom. */
+    <div
+      data-reveal="stage"
+      className="relative max-md:flex max-md:min-h-[calc(100svh-5.5rem)] max-md:flex-col"
+    >
+      {/* The overlay below stretches over this box, so it has to hold the
+          wordmark and nothing else. Full bleed on phones. */}
+      <div className="relative max-md:-mx-gutter max-md:my-auto">
+        <svg
+          viewBox={viewBox}
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          role="img"
+          aria-label="Potencial"
+          className="block h-auto w-full"
+        >
+          {LETTERS.map((d, index) => (
+            <path
+              key={index}
+              d={d}
+              fill={LETTER_FILL}
+              transform={layout.place(index)}
+            />
+          ))}
+        </svg>
 
-      <Canvas
-        dpr={[1, 2]}
-        orthographic
-        gl={{ antialias: true, toneMappingExposure: 1.15 }}
-        camera={{ position: [0, 0, 100], zoom: 1, near: 0.1, far: 1000 }}
-        eventSource={EVENT_SOURCE}
-        onCreated={({ setEvents }) =>
-          setEvents({
-            compute: (event, state) => {
-              const canvas = state.gl.domElement.getBoundingClientRect()
+        <Canvas
+          dpr={[1, 2]}
+          orthographic
+          gl={{ antialias: true, toneMappingExposure: 1.15 }}
+          camera={{ position: [0, 0, 100], zoom: 1, near: 0.1, far: 1000 }}
+          eventSource={EVENT_SOURCE}
+          onCreated={({ setEvents }) =>
+            setEvents({
+              compute: (event, state) => {
+                const canvas = state.gl.domElement.getBoundingClientRect()
 
-              state.pointer.set(
-                ((event.clientX - canvas.left) / canvas.width) * 2 - 1,
-                -((event.clientY - canvas.top) / canvas.height) * 2 + 1,
-              )
-              state.raycaster.setFromCamera(state.pointer, state.camera)
-            },
-          })
-        }
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "auto",
-          aspectRatio: `${VIEW_WIDTH} / ${CANVAS_HEIGHT}`,
-          pointerEvents: "none",
-        }}
-      >
-        {/* Lights and reflections, all built in-scene — no HDRI fetched from
-            a CDN. */}
-        <Studio />
+                state.pointer.set(
+                  ((event.clientX - canvas.left) / canvas.width) * 2 - 1,
+                  -((event.clientY - canvas.top) / canvas.height) * 2 + 1,
+                )
+                state.raycaster.setFromCamera(state.pointer, state.camera)
+              },
+            })
+          }
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "auto",
+            aspectRatio: `${layout.width} / ${layout.canvasHeight}`,
+            pointerEvents: "none",
+          }}
+        >
+          {/* Lights and reflections, all built in-scene — no HDRI fetched from
+              a CDN. */}
+          <Studio />
 
-        <Suspense fallback={null}>
-          <HangingLock open={open} onToggle={toggle} />
-        </Suspense>
-      </Canvas>
+          <Suspense fallback={null}>
+            <HangingLock
+              open={open}
+              onToggle={toggle}
+              viewWidth={layout.width}
+              lockHeight={layout.lockHeight}
+            />
+          </Suspense>
+        </Canvas>
 
-      {/* The hooked letter again, clipped to its top stroke, so the shackle
-          runs behind the ring. */}
-      <svg
-        viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-hidden
-        className="pointer-events-none absolute inset-0 block h-full w-full"
-      >
-        <defs>
-          <clipPath id={clipId}>
-            <rect x={235} y={0} width={100} height={HOOK_STROKE_BOTTOM} />
-          </clipPath>
-        </defs>
-        <path
-          d={LETTERS[HOOK_LETTER]}
-          fill={LETTER_FILL}
-          clipPath={`url(#${clipId})`}
-        />
-      </svg>
+        {/* The hooked letter again, clipped to its top stroke, so the shackle
+            runs behind the ring. */}
+        <svg
+          viewBox={viewBox}
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden
+          className="pointer-events-none absolute inset-0 block h-full w-full"
+        >
+          <defs>
+            <clipPath id={clipId}>
+              <rect x={235} y={0} width={100} height={HOOK_STROKE_BOTTOM} />
+            </clipPath>
+          </defs>
+          <path
+            d={LETTERS[HOOK_LETTER]}
+            fill={LETTER_FILL}
+            clipPath={`url(#${clipId})`}
+          />
+        </svg>
+      </div>
 
-      {/* Points at the lock until it has been opened once. A real button, so
-          the page can be unlocked without a pointer. */}
-      <button
-        type="button"
-        onClick={toggle}
-        className="intro-hint absolute flex -translate-y-1/2 cursor-pointer items-center gap-2 font-medium text-lg text-primary text-left"
-        style={{
-          left: `${(HINT_X / VIEW_WIDTH) * 100}%`,
-          top: `${(HINT_Y / VIEW_HEIGHT) * 100}%`,
-        }}
-      >
-        <span className="symbol text-3xl motion-safe:animate-[nudge_1.4s_ease-in-out_infinite]">
-          arrow_back
-        </span>
-        <span>
-          clique para
-          <br />
-          <u>
-            <b>desbloquear</b>
-          </u>
-        </span>
-      </button>
+      <div className="md:contents max-md:grid">
+        {/* Points at the lock until it has been opened once. A real button, so
+            the page can be unlocked without a pointer. On phones it sits in the
+            flow at the foot of the screen, pointing up.
+
+            On desktop it is placed against this whole box, which also holds the
+            copy below, so its height says nothing about the wordmark's. The
+            vertical offset is a margin instead: percentage margins are taken
+            from the width, which the wordmark's height is a fixed share of. */}
+        <button
+          type="button"
+          onClick={toggle}
+          className="intro-hint flex cursor-pointer items-center gap-2 font-medium text-lg text-primary text-left md:absolute md:top-0 md:left-(--hint-x) md:mt-(--hint-y) md:-translate-y-1/2 max-md:col-start-1 max-md:row-start-1 max-md:flex-col max-md:self-end max-md:justify-self-center max-md:pb-8 max-md:text-center"
+          style={
+            {
+              "--hint-x": `${(HINT_X / VIEW_WIDTH) * 100}%`,
+              "--hint-y": `${(HINT_Y / VIEW_WIDTH) * 100}%`,
+            } as CSSProperties
+          }
+        >
+          <span className="symbol text-3xl max-md:rotate-90 motion-safe:animate-[nudge_1.4s_ease-in-out_infinite]">
+            arrow_back
+          </span>
+          <span>
+            clique para
+            <br />
+            <u>
+              <b>desbloquear</b>
+            </u>
+          </span>
+        </button>
+        {children}
+      </div>
     </div>
   )
 }
@@ -875,12 +994,12 @@ const LockedWordmark: FC = () => {
 const Explainer: FC = () => (
   <div
     data-reveal="rest"
-    className="ml-[40%] pb-48 flex flex-col items-start gap-2"
+    className="md:ml-[40%] pb-8 md:pb-48 flex flex-col items-start gap-2 max-md:col-start-1 max-md:row-start-1 max-md:self-end"
   >
-    <h1 className="text-4xl text-balance w-4/5">
+    <h1 className="text-3xl md:text-4xl text-balance md:w-4/5">
       Iatize seu negócio e <b>abra portas para o seu crescimento</b>
     </h1>
-    <p className="w-4/6">
+    <p className="md:w-4/6">
       Analisamos o seu negócio de ponta a ponta, identificamos onde a IA gera
       mais impacto e cuidamos de todo o projeto,{" "}
       <b>do diagnóstico à implementação.</b>{" "}
@@ -890,9 +1009,10 @@ const Explainer: FC = () => (
 )
 
 const Hero: FC = () => (
-  <div className="container pt-16">
-    <LockedWordmark />
-    <Explainer />
+  <div className="container pt-8 md:pt-16">
+    <LockedWordmark>
+      <Explainer />
+    </LockedWordmark>
   </div>
 )
 

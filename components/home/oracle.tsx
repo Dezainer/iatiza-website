@@ -8,13 +8,14 @@ import eyePupil from "@/public/eye/pupil.png"
 import eyeBorder from "@/public/eye/border.png"
 import Glass from "@/components/app/glass"
 
-const Circles: FC = () => (
+const Circles: FC<{ className?: string }> = ({ className }) => (
   <svg
     width="1204"
     height="1204"
     viewBox="0 0 1204 1204"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
+    className={className}
   >
     <path
       d="M750.515 602C750.515 684.022 684.022 750.515 602 750.515C519.978 750.515 453.485 684.022 453.485 602C453.485 519.978 519.978 453.485 602 453.485C684.022 453.485 750.515 519.978 750.515 602Z"
@@ -401,6 +402,22 @@ const LENS = 400
 // How far the pointer has to be for the eye to look all the way over.
 const reach = () => Math.max(window.innerWidth, window.innerHeight) / 2
 
+// Without a mouse to follow (touch screens, and phones generally) the eye
+// looks around on its own instead: a glance somewhere every so often, with
+// the odd return to the middle, the way an eye idles rather than a pendulum.
+const WANDER = "(hover: none), (width < 48rem)"
+
+// Pause between glances, ms.
+const GLANCE_MIN = 900
+const GLANCE_MAX = 2600
+
+// Chance a glance goes back to the middle rather than somewhere new.
+const GLANCE_HOME = 0.2
+
+// How far out a glance lands, as a share of PUPIL_TRAVEL.
+const GLANCE_NEAR = 0.35
+const GLANCE_FAR = 0.9
+
 const Eye: FC = () => {
   const border = useRef<HTMLImageElement>(null)
   const pupil = useRef<HTMLImageElement>(null)
@@ -455,6 +472,35 @@ const Eye: FC = () => {
       frame = settled ? 0 : requestAnimationFrame(follow)
     }
 
+    if (window.matchMedia(WANDER).matches) {
+      let timeout = 0
+
+      const glance = () => {
+        if (Math.random() < GLANCE_HOME) {
+          target.x = 0
+          target.y = 0
+        } else {
+          const angle = Math.random() * Math.PI * 2
+          const pull =
+            PUPIL_TRAVEL *
+            (GLANCE_NEAR + Math.random() * (GLANCE_FAR - GLANCE_NEAR))
+          target.x = Math.cos(angle) * pull
+          target.y = Math.sin(angle) * pull
+        }
+        if (!frame) frame = requestAnimationFrame(follow)
+        timeout = window.setTimeout(
+          glance,
+          GLANCE_MIN + Math.random() * (GLANCE_MAX - GLANCE_MIN),
+        )
+      }
+
+      timeout = window.setTimeout(glance, GLANCE_MIN)
+      return () => {
+        clearTimeout(timeout)
+        cancelAnimationFrame(frame)
+      }
+    }
+
     window.addEventListener("pointermove", look)
     return () => {
       window.removeEventListener("pointermove", look)
@@ -491,7 +537,7 @@ interface CardProps {
 
 const Card: FC<CardProps> = ({ title, description, className }) => (
   <Glass
-    className={`p-4 flex flex-col gap-3 w-[227] h-[324] ${className}`}
+    className={`p-4 flex flex-col gap-3 w-[227] h-[324] max-md:shrink-0 max-md:w-[70%] max-md:h-auto max-md:min-h-60 max-md:snap-start ${className}`}
     frost={10}
   >
     <h4 className="text-2xl font-bold text-primary">{title}</h4>
@@ -539,54 +585,69 @@ const Fade: FC = () => (
 )
 
 const Headline: FC = () => (
-  <h2 className="text-6xl text-center font-bold absolute top-1/6 left-1/2 -translate-x-1/2 -translate-y-1/4">
+  <h2 className="text-4xl md:text-6xl text-center font-bold absolute top-0 md:top-1/6 left-1/2 -translate-x-1/2 md:-translate-y-1/4 whitespace-nowrap">
     Nada escapa
     <br />
     do <span className="text-primary">oráculo</span>
   </h2>
 )
 
+/* On desktop the cards float around the eye, positioned against the stage.
+   On phones the stage shrinks to a fixed square-ish box with the eye scaled
+   down in the middle, and the cards drop below it into a swipe carousel. The
+   cards' wrapper is `display: contents` on desktop, so it adds no box and the
+   cards still position against the stage. */
 const Oracle: FC = () => (
-  <div className="container mt-32">
-    <div className="relative">
-      <Circles />
-      <Backlight />
-      <Fade />
-      <Eye />
-      <Headline />
-      <Card
-        className="absolute top-1/2 left-1/12 -translate-y-1/2"
-        title="Respostas que ajudam de fato"
-        description={
-          <>
-            Nada de bate-papo aberto que erra o alvo. O Oráculo{" "}
-            <b>entrega exatamente o que o seu negócio precisa saber</b>, sem
-            enrolação e sem achismo.
-          </>
-        }
-      />
-      <Card
-        className="absolute top-1/2 right-1/12 -translate-y-1/2"
-        title="Limitado e com propósito"
-        description={
-          <>
-            Diferente de um agente genérico, o Oráculo foi construído com escopo
-            definido, <b>menos é mais quando o objetivo é resultado certeiro</b>
-            , não conversa infinita.
-          </>
-        }
-      />
-      <Card
-        className="absolute bottom-0 left-1/2 -translate-x-1/2 -translate-y-1/12"
-        title="Direto ao ponto do seu negócio"
-        description={
-          <>
-            Treinado com o contexto real da sua empresa, o Oráculo enxerga
-            exatamente onde procurar e{" "}
-            <b>entrega a resposta certa na velocidade que o negócio exige</b>.
-          </>
-        }
-      />
+  /* Clipped sideways at the screen edges: the backlight and the circles are
+     wider than a phone. See the same wrapper in cases.tsx. */
+  <div className="overflow-x-clip">
+    <div className="container mt-24 md:mt-32">
+      <div className="relative">
+        <div className="relative max-md:h-128">
+          <Circles className="max-md:absolute max-md:top-1/2 max-md:left-1/2 max-md:-translate-1/2 max-md:size-180 max-md:max-w-none" />
+          <Backlight />
+          <Fade />
+          <div className="absolute inset-0 max-md:scale-70">
+            <Eye />
+          </div>
+          <Headline />
+        </div>
+        <div className="md:contents max-md:flex max-md:gap-4 max-md:-mx-gutter max-md:px-gutter max-md:scroll-px-gutter max-md:overflow-x-auto max-md:snap-x max-md:snap-mandatory max-md:py-4 max-md:-mt-20 no-scrollbar">
+          <Card
+            className="md:absolute md:top-1/2 md:left-1/12 md:-translate-y-1/2"
+            title="Respostas que ajudam de fato"
+            description={
+              <>
+                Nada de bate-papo aberto que erra o alvo. O Oráculo{" "}
+                <b>entrega exatamente o que o seu negócio precisa saber</b>, sem
+                enrolação e sem achismo.
+              </>
+            }
+          />
+          <Card
+            className="md:absolute md:top-1/2 md:right-1/12 md:-translate-y-1/2"
+            title="Limitado e com propósito"
+            description={
+              <>
+                Diferente de um agente genérico, o Oráculo foi construído com escopo
+                definido, <b>menos é mais quando o objetivo é resultado certeiro</b>
+                , não conversa infinita.
+              </>
+            }
+          />
+          <Card
+            className="md:absolute md:bottom-0 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/12"
+            title="Direto ao ponto do seu negócio"
+            description={
+              <>
+                Treinado com o contexto real da sua empresa, o Oráculo enxerga
+                exatamente onde procurar e{" "}
+                <b>entrega a resposta certa na velocidade que o negócio exige</b>.
+              </>
+            }
+          />
+        </div>
+      </div>
     </div>
   </div>
 )

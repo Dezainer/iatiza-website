@@ -16,11 +16,11 @@ export default function Home() {
       <IntroGate />
       <Header />
       {/* The graph runs behind both sections, so it is anchored to the pair of
-          them rather than living inside either one. */}
+          them rather than living inside either one. Left out on phones. */}
       <div className="relative">
         <div
           data-reveal="rest"
-          className="pointer-events-none absolute inset-x-0 top-0 -z-10"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-10 max-md:hidden"
         >
           <GraphLine />
         </div>

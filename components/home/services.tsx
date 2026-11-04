@@ -104,20 +104,22 @@ const Switch: FC<SwitchProps> = ({ criterion, on, bump, onToggle }) => {
       role="switch"
       aria-checked={on}
       onClick={() => onToggle(criterion)}
-      className="flex items-center gap-4 py-3 cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary rounded-lg"
+      className="flex items-center gap-1.5 md:gap-4 py-2 md:py-3 cursor-pointer text-left focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary rounded-lg"
     >
       <span
-        className={`text-2xl font-bold transition-colors duration-300 ${on ? "text-primary" : "text-foreground/30"}`}
+        className={`text-sm md:text-2xl font-bold whitespace-nowrap transition-colors duration-300 ${on ? "text-primary" : "text-foreground/30"}`}
       >
         {CRITERION[criterion]}
       </span>
       <span
-        className={`w-14 h-8 p-1 rounded-full flex shrink-0 transition-colors duration-300 ${on ? "bg-primary" : "bg-foreground/10"}`}
+        className={`w-9 h-5 p-0.5 md:w-14 md:h-8 md:p-1 rounded-full flex shrink-0 transition-colors duration-300 ${on ? "bg-primary" : "bg-foreground/10"}`}
       >
+        {/* The track's inner width is two knobs at both sizes, so one knob's
+            width is exactly the throw. */}
         <motion.span
-          animate={{ x: on ? 24 : 0 }}
+          animate={{ x: on ? "100%" : "0%" }}
           transition={{ type: "spring", stiffness: 500, damping: 30 }}
-          className="size-6 rounded-full bg-background shadow-sm"
+          className="size-4 md:size-6 rounded-full bg-background shadow-sm"
         />
       </span>
     </button>
@@ -383,56 +385,75 @@ const Services: FC = () => {
   }
 
   return (
-    <div className="container mt-32 pb-32 flex flex-col items-center gap-16">
-      <div className="flex flex-col items-center text-center gap-4">
-        <h2 className="text-6xl font-bold">
-          Como podemos
-          <br />
-          <span className="text-primary">iatizar</span> sua empresa
-        </h2>
-        <p className="w-2/3 text-balance">
-          Do diagnóstico à operação, estas são as soluções que a Iatiza coloca
-          pra rodar dentro da sua empresa,{" "}
-          <b>cada uma feita pra destravar uma parte do negócio</b>.
-        </p>
-      </div>
-      <div className="w-full flex flex-col items-center gap-8">
-        <div className="flex gap-12 justify-center">
-          {CRITERIA.map((criterion) => (
-            <Switch
-              key={criterion}
-              criterion={criterion}
-              on={active.includes(criterion)}
-              bump={bumps[criterion]}
-              onToggle={toggle}
-            />
-          ))}
+    /* Clipped sideways at the screen edges, so the thread behind the cards
+       cannot widen the page. See the same wrapper in cases.tsx. */
+    <div className="overflow-x-clip">
+      <div className="container mt-24 md:mt-32 pb-24 md:pb-32 flex flex-col items-center gap-12 md:gap-16">
+        <div className="flex flex-col items-center text-center gap-4">
+          <h2 className="text-4xl md:text-6xl font-bold">
+            Como podemos
+            <br />
+            <span className="text-primary">iatizar</span> sua empresa
+          </h2>
+          <p className="md:w-2/3 text-balance">
+            Do diagnóstico à operação, estas são as soluções que a Iatiza coloca
+            pra rodar dentro da sua empresa,{" "}
+            <b>cada uma feita pra destravar uma parte do negócio</b>.
+          </p>
         </div>
-        <div className="w-full relative">
-          <Thread d={d} id={stroke.id} />
-          <div ref={grid} className="relative grid grid-cols-3 gap-4">
-            {SERVICES.map((service) => (
-              <Card
-                key={service.title}
-                service={service}
-                active={active}
-                onPick={pick}
+        <div className="w-full flex flex-col items-center gap-8">
+          {/* On phones: a pill held at the foot of the screen while the cards
+              scroll past, all in CSS and bound to this block — it starts above
+              the first card and is let go at the last one.
+
+              Pinned from the top rather than with bottom: when a phone's
+              toolbars come back (scrolling up, typically) the visible area
+              gets shorter than the one bottom is measured against, and a pill
+              stuck to the bottom ends up behind them. 100svh is the height
+              with the toolbars showing, so this stays clear either way. The
+              3.75rem is the pill's height (about 45px) plus a 1rem margin. */}
+          <div className="flex gap-12 justify-center max-md:sticky max-md:top-[calc(100svh-3.75rem)] max-md:z-20 max-md:gap-3 max-md:rounded-full max-md:bg-background max-md:px-4 max-md:py-1 max-md:shadow-[0_8px_32px_rgb(0_0_0/0.12)]">
+            {CRITERIA.map((criterion) => (
+              <Switch
+                key={criterion}
+                criterion={criterion}
+                on={active.includes(criterion)}
+                bump={bumps[criterion]}
+                onToggle={toggle}
               />
             ))}
           </div>
+          <div className="w-full relative">
+            <Thread d={d} id={stroke.id} />
+            <div ref={grid} className="relative grid md:grid-cols-3 gap-4">
+              {SERVICES.map((service) => (
+                <Card
+                  key={service.title}
+                  service={service}
+                  active={active}
+                  onPick={pick}
+                />
+              ))}
+            </div>
+          </div>
+          {/* Where the pill comes to rest on phones. Sticky only travels as far
+              as the end of its parent's content box — padding does not count —
+              so the room under the last card has to be an element. With the
+              gap above it, the pill settles about 2.5rem clear of the card. */}
+          <div aria-hidden className="md:hidden h-14" />
         </div>
-      </div>
-      <div className="flex flex-col items-center text-center gap-6">
-        <div className="flex flex-col items-center gap-2">
-          <h3 className="text-3xl font-bold">
-            Não sabe por onde <span className="text-primary">começar?</span>
-          </h3>
-          <p className="text-sm w-3/5 text-balance">
-            Em uma conversa rápida a gente entende o momento da sua empresa e{" "}
-            <b>indica a solução que faz mais sentido agora</b>.
-          </p>
+        <div className="flex flex-col items-center text-center gap-6">
+          <div className="flex flex-col items-center gap-2">
+            <h3 className="text-2xl md:text-3xl font-bold">
+              Não sabe por onde <span className="text-primary">começar?</span>
+            </h3>
+            <p className="text-sm md:w-3/5 text-balance">
+              Em uma conversa rápida a gente entende o momento da sua empresa e{" "}
+              <b>indica a solução que faz mais sentido agora</b>.
+            </p>
+          </div>
+          <Button href="#contato">Quero iatizar minha empresa</Button>
         </div>
-        <Button href="#contato">Quero iatizar minha empresa</Button>
       </div>
     </div>
   )

@@ -11,6 +11,7 @@ import {
   useTransform,
 } from "motion/react"
 
+import { MOBILE, useMediaQuery } from "@/lib/use-media-query"
 import key from "@/public/key.png"
 
 interface Step {
@@ -103,7 +104,12 @@ interface LetterProps {
   x: MotionValue<number>
   /** The container's width. */
   width: MotionValue<number>
+  /** Phones have no pointer to follow, so the colours are fixed instead. */
+  still: boolean
 }
+
+/** On phones, this many letters from the start stay blue; the rest are black. */
+const STILL_LIT = 2
 
 /** Within this many cards of the pointer a letter is fully blue… */
 const HOLD = 0.5
@@ -113,7 +119,14 @@ const REACH = 2.5
 /* Tints from the foreground to the primary as the pointer gets horizontally
    closer to it. Full blue within HOLD cards of the pointer, fading out by
    REACH, so the neighbours stay lit too and the glow trails the pointer. */
-const Letter: FC<LetterProps> = ({ index, children, pointer, x, width }) => {
+const Letter: FC<LetterProps> = ({
+  index,
+  children,
+  pointer,
+  x,
+  width,
+  still,
+}) => {
   const color = useTransform(() => {
     const card = (width.get() - GAP * (VISIBLE - 1)) / VISIBLE
     const center = index * (card + GAP) + card / 2 + x.get()
@@ -129,8 +142,14 @@ const Letter: FC<LetterProps> = ({ index, children, pointer, x, width }) => {
 
   return (
     <motion.span
-      className="relative -z-10 text-[256px] font-bold -mt-40"
-      style={{ color }}
+      className="relative -z-10 text-[220px] md:text-[256px] font-bold -mt-32 md:-mt-40"
+      style={{
+        color: still
+          ? index < STILL_LIT
+            ? "var(--primary)"
+            : "var(--foreground)"
+          : color,
+      }}
     >
       {children}
     </motion.span>
@@ -151,8 +170,11 @@ const Method: FC = () => {
   const pointer = useMotionValue(-Infinity)
   const containerWidth = useMotionValue(0)
 
+  /* On phones the track is a plain swipe carousel instead. */
+  const still = useMediaQuery(MOBILE)
+
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
-    if (!viewport.current || !track.current) return
+    if (still || !viewport.current || !track.current) return
 
     const { left, width } = viewport.current.getBoundingClientRect()
     const progress = Math.min(Math.max((event.clientX - left) / width, 0), 1)
@@ -164,58 +186,70 @@ const Method: FC = () => {
   }
 
   return (
-    <div
-      id="metodo"
-      className="container flex flex-col gap-2"
-      onPointerMove={onPointerMove}
-    >
-      <div className="flex items-end gap-4">
-        <div className="flex-3 relative">
-          <h2 className="text-8xl font-bold">
-            A chave
-            <br />
-            tem método
-          </h2>
-          <Image
-            src={key}
-            alt="Chave"
-            style={{ position: "absolute", right: 0, top: "2.5%", width: 285 }}
-          />
+    /* Clipped sideways at the screen edges, which is what cuts the key off
+       on phones instead of letting it widen the page. */
+    <div className="overflow-x-clip">
+      <div
+        id="metodo"
+        className="container flex flex-col gap-2"
+        onPointerMove={onPointerMove}
+      >
+        <div className="flex max-md:flex-col md:items-end gap-4">
+          {/* On phones the key leaves the title and sits above it, as the
+              divider between the hero and this section, running off the right
+              edge of the screen: -mr-17 is the gutter plus a sixth of the key,
+              and the page's overflow-x clip cuts it off there. */}
+          <div className="flex-3 relative max-md:flex max-md:flex-col">
+            <h2 className="text-5xl md:text-8xl font-bold">
+              A chave
+              <br />
+              tem método
+            </h2>
+            <Image
+              src={key}
+              alt="Chave"
+              className="absolute right-0 top-[2.5%] w-[285px] max-md:static max-md:order-first max-md:self-end max-md:-mr-17 max-md:w-72 max-md:h-auto max-md:mb-4"
+            />
+          </div>
+          <p className="flex-2 md:pb-9">
+            Destravar o potencial da sua empresa com IA{" "}
+            <b>não é sorte, é processo</b>. Um método testado que vai do
+            entendimento do negócio até o acompanhamento dos resultados.
+          </p>
         </div>
-        <p className="flex-2 pb-9">
-          Destravar o potencial da sua empresa com IA{" "}
-          <b>não é sorte, é processo</b>. Um método testado que vai do
-          entendimento do negócio até o acompanhamento dos resultados.
-        </p>
-      </div>
-      <div ref={viewport}>
-        <motion.div ref={track} className="flex gap-4" style={{ x }}>
-          {STEPS.map((step, index) => (
-            <div
-              key={step.title}
-              className="shrink-0 flex flex-col items-center"
-              style={{
-                flexBasis: `calc((100% - ${VISIBLE - 1}rem) / ${VISIBLE})`,
-              }}
-            >
-              <Glass className="p-4 flex flex-col gap-2 relative h-80">
-                <h3 className="text-2xl text-primary font-bold">
-                  {step.title}
-                </h3>
-                <p className="text-sm">{step.description}</p>
-              </Glass>
-              {/* Behind the pane, so the glass has something to bend and frost. */}
-              <Letter
-                index={index}
-                pointer={pointer}
-                x={x}
-                width={containerWidth}
+        <div ref={viewport}>
+          {/* On phones: full bleed, swiped, snapping each card to the gutter. */}
+          <motion.div
+            ref={track}
+            className="flex gap-4 max-md:-mx-gutter max-md:px-gutter max-md:scroll-px-gutter max-md:overflow-x-auto max-md:snap-x max-md:snap-mandatory no-scrollbar"
+            style={{ x }}
+          >
+            {STEPS.map((step, index) => (
+              <div
+                key={step.title}
+                /* VISIBLE cards across the container, less the gaps between. */
+                className="shrink-0 flex flex-col items-center basis-[60%] max-md:snap-start md:basis-[calc((100%-4rem)/5)]"
               >
-                {step.element}
-              </Letter>
-            </div>
-          ))}
-        </motion.div>
+                <Glass className="p-4 flex flex-col gap-2 relative h-80">
+                  <h3 className="text-xl md:text-2xl text-primary font-bold">
+                    {step.title}
+                  </h3>
+                  <p className="text-sm">{step.description}</p>
+                </Glass>
+                {/* Behind the pane, so the glass has something to bend and frost. */}
+                <Letter
+                  index={index}
+                  pointer={pointer}
+                  x={x}
+                  width={containerWidth}
+                  still={still}
+                >
+                  {step.element}
+                </Letter>
+              </div>
+            ))}
+          </motion.div>
+        </div>
       </div>
     </div>
   )

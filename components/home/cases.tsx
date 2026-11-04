@@ -134,28 +134,40 @@ const Cases: FC = () => {
   const [audible, setAudible] = useState<number | null>(null)
 
   return (
-    <div className="container flex flex-col items-center pt-12">
-      <div className="w-4/5">
-        <div className="flex flex-col items-center">
-          <h2 className="text-center font-bold">
-            <span className="text-4xl block h-2">Conheça alguns</span>
-            <br />
-            <span className="text-9xl text-primary block h-29">iatizados</span>
-          </h2>
-        </div>
-        <div className="relative">
-          <BackgroundElement />
-          <div className="relative grid grid-cols-3 gap-6">
-            {CASES.map((item, index) => (
-              <CaseCard
-                key={item.video}
-                item={item}
-                audible={audible === index}
-                onToggleSound={() =>
-                  setAudible((current) => (current === index ? null : index))
-                }
-              />
-            ))}
+    /* The stroke behind the cards is far wider than any phone. Clipped
+       sideways here, at the screen's edges rather than the container's, so it
+       cannot widen the page; `clip` rather than `hidden` leaves its blur free
+       to spill up and down. */
+    <div className="overflow-x-clip">
+      <div className="container flex flex-col items-center pt-12">
+        <div className="w-full md:w-4/5">
+          <div className="flex flex-col items-center">
+            <h2 className="text-center font-bold">
+              <span className="text-3xl md:text-4xl block h-2">
+                Conheça alguns
+              </span>
+              <br />
+              {/* The fixed height tucks the next line up under the descenders;
+                  0.9em is the same ratio as h-29 on text-9xl. */}
+              <span className="text-6xl md:text-9xl text-primary block h-[0.9em] md:h-29">
+                iatizados
+              </span>
+            </h2>
+          </div>
+          <div className="relative">
+            <BackgroundElement />
+            <div className="relative grid md:grid-cols-3 gap-6 max-md:mt-12">
+              {CASES.map((item, index) => (
+                <CaseCard
+                  key={item.video}
+                  item={item}
+                  audible={audible === index}
+                  onToggleSound={() =>
+                    setAudible((current) => (current === index ? null : index))
+                  }
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>

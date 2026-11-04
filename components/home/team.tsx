@@ -215,6 +215,20 @@ const Divider: FC<DividerProps> = ({ className }) => (
  * breaking the stickiness.
  * ---------------------------------------------------------------------- */
 
+const HeadlineCopy: FC = () => (
+  <>
+    <h2 className="text-3xl font-bold text-primary">
+      Equipe completa
+      <br />
+      <span className="text-background">pra abrir caminho</span>
+    </h2>
+    <p className="text-background text-sm md:w-2/5">
+      Um <b>time multidisciplinar pra te acompanhar em cada passo</b> da
+      jornada, da implementação até o resultado final.
+    </p>
+  </>
+)
+
 const Headline: FC<{ progress: MotionValue<number> }> = ({ progress }) => {
   const options = { ease: easeOut }
   const opacity = useTransform(progress, HEADLINE_FADE, [0, 1], options)
@@ -233,15 +247,7 @@ const Headline: FC<{ progress: MotionValue<number> }> = ({ progress }) => {
       style={{ opacity, scale }}
       className="absolute left-1/2 top-1/2 -translate-x-1/2  flex flex-col items-center text-center"
     >
-      <h2 className="text-3xl font-bold text-primary">
-        Equipe completa
-        <br />
-        <span className="text-background">pra abrir caminho</span>
-      </h2>
-      <p className="text-background text-sm w-2/5">
-        Um <b>time multidisciplinar pra te acompanhar em cada passo</b> da
-        jornada, da implementação até o resultado final.
-      </p>
+      <HeadlineCopy />
     </motion.div>
   )
 }
@@ -269,7 +275,65 @@ const Curtains: FC<{ progress: MotionValue<number> }> = ({ progress }) => {
   )
 }
 
-const Team: FC = () => {
+/* -------------------------------------------------------------------------
+ * Phones
+ *
+ * No curtains, no parallax and no mirroring: the headline, then everyone in
+ * one swipeable row, all facing the same way with their name over their
+ * head. Rendered alongside the desktop scene and swapped by CSS, so neither
+ * shape flashes in on hydration; the hidden one's lazy images never load.
+ * ---------------------------------------------------------------------- */
+
+const TEAM = [...LEFT, ...RIGHT]
+
+const TeamMobile: FC = () => (
+  <div className="md:hidden isolate bg-foreground relative pt-24">
+    <div className="absolute inset-0 flex">
+      <div className="flex-1 h-full bg-radial-[100%_50%_at_left_center] from-primary to-transparent" />
+      <div className="flex-1 h-full bg-radial-[100%_50%_at_right_center] from-primary to-transparent" />
+    </div>
+    <div className="container relative flex flex-col items-center text-center gap-2">
+      <HeadlineCopy />
+    </div>
+    {/* Most of the photos are cropped down their left side, through the arm,
+        so each figure tucks that edge in behind the one before it: they
+        overlap by 15% and stack from the front of the row backwards. Isolated
+        so that stacking stays in here, under the fade below. */}
+    <div className="relative isolate flex overflow-x-auto snap-x snap-mandatory px-gutter scroll-px-gutter no-scrollbar pt-12">
+      {TEAM.map(({ name, title, picture }, index) => (
+        <div
+          key={name}
+          className="relative shrink-0 basis-[80%] not-first:-ml-[15%] snap-start flex flex-col items-center gap-6"
+          style={{ zIndex: TEAM.length - index }}
+        >
+          <div className="flex flex-col">
+            <span className="text-sm font-bold text-background">{name}</span>
+            <span className="text-xs text-background">{title}</span>
+          </div>
+          <Image
+            src={picture}
+            alt={name}
+            sizes="80vw"
+            className="w-full aspect-9/10 object-contain object-bottom"
+          />
+        </div>
+      ))}
+    </div>
+    {/* Same fade into the form as the desktop scene, and the same divider
+        and glow hung off its foot. */}
+    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3 bg-linear-to-t from-foreground to-transparent" />
+    <div
+      aria-hidden
+      className="pointer-events-none absolute inset-x-0 top-full z-5 h-120"
+    >
+      <div className="container h-full flex flex-col items-center bg-radial-[50%_100%_at_top_center] from-primary/26 to-transparent">
+        <Divider className="w-4/5" />
+      </div>
+    </div>
+  </div>
+)
+
+const TeamDesktop: FC = () => {
   const section = useRef<HTMLDivElement>(null)
 
   /* One observer for the whole section, shared by the curtains and every
@@ -280,7 +344,7 @@ const Team: FC = () => {
   })
 
   return (
-    <div ref={section} className="pt-16 bg-foreground relative">
+    <div ref={section} className="max-md:hidden pt-16 bg-foreground relative">
       <div className="sticky top-0">
         <div className="absolute inset-0 flex">
           <div className="flex-1 h-full bg-radial-[100%_50%_at_left_center] from-primary to-transparent" />
@@ -342,5 +406,12 @@ const Team: FC = () => {
     </div>
   )
 }
+
+const Team: FC = () => (
+  <>
+    <TeamMobile />
+    <TeamDesktop />
+  </>
+)
 
 export default Team
