@@ -5,6 +5,13 @@ import { AnimatePresence, motion, useAnimate } from "motion/react"
 
 import Button from "@/components/app/button"
 import Glass from "@/components/app/glass"
+import {
+  CRITERIA,
+  CRITERION,
+  SERVICES,
+  type Criterion,
+  type Service,
+} from "@/lib/services"
 
 /* -------------------------------------------------------------------------
  * Pick two
@@ -16,69 +23,8 @@ import Glass from "@/components/app/glass"
  * criteria, so a full pair always lands on exactly two of the six cards.
  * ---------------------------------------------------------------------- */
 
-const CRITERIA = ["rapido", "enxuto", "sob-medida"] as const
-
-type Criterion = (typeof CRITERIA)[number]
-
-const CRITERION: Record<Criterion, string> = {
-  rapido: "Rápido",
-  enxuto: "Enxuto",
-  "sob-medida": "Sob medida",
-}
-
 /** How many switches may be on at once. */
 const LIMIT = 2
-
-interface Service {
-  title: string
-  description: string
-  /** Material Symbols name — also listed in app/layout.tsx. */
-  icon: string
-  criteria: [Criterion, Criterion]
-}
-
-/* Placeholder copy until the real product list comes in. Keep two services
-   per pair so every combination lights up the same number of cards. */
-const SERVICES: Service[] = [
-  {
-    title: "Diagnóstico de IA",
-    description:
-      "Um raio-x da operação que aponta onde a IA dá retorno primeiro.",
-    icon: "query_stats",
-    criteria: ["rapido", "enxuto"],
-  },
-  {
-    title: "Oráculo",
-    description:
-      "Respostas certeiras sobre o seu negócio, treinadas no seu contexto.",
-    icon: "visibility",
-    criteria: ["rapido", "sob-medida"],
-  },
-  {
-    title: "Agentes de atendimento",
-    description: "Atendimento que resolve de verdade, a qualquer hora do dia.",
-    icon: "support_agent",
-    criteria: ["enxuto", "sob-medida"],
-  },
-  {
-    title: "Automações",
-    description: "Tarefas repetitivas saem da mesa do time e vão pra máquina.",
-    icon: "bolt",
-    criteria: ["rapido", "sob-medida"],
-  },
-  {
-    title: "Treinamento de equipes",
-    description: "Seu time usando IA no dia a dia, com método e sem medo.",
-    icon: "school",
-    criteria: ["rapido", "enxuto"],
-  },
-  {
-    title: "Integrações",
-    description: "A IA conversando com os sistemas que a empresa já usa.",
-    icon: "hub",
-    criteria: ["enxuto", "sob-medida"],
-  },
-]
 
 interface SwitchProps {
   criterion: Criterion

@@ -1,5 +1,6 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Poppins } from "next/font/google"
+import { SITE } from "@/lib/site"
 import "./globals.css"
 
 const poppins = Poppins({
@@ -20,9 +21,49 @@ const MATERIAL_SYMBOLS =
   "&icon_names=arrow_back,bolt,hub,query_stats,school,support_agent,visibility,volume_off,volume_up" +
   "&display=block"
 
+/* The values themselves live in lib/site.ts. The OG image comes from
+   app/opengraph-image.tsx and is wired in automatically. */
 export const metadata: Metadata = {
-  title: "IATIZA",
-  description: "",
+  metadataBase: new URL(SITE.url),
+  title: { default: SITE.title, template: `%s | ${SITE.name}` },
+  description: SITE.description,
+  applicationName: SITE.name,
+  keywords: [...SITE.keywords],
+  authors: [{ name: SITE.name, url: SITE.url }],
+  creator: SITE.name,
+  publisher: SITE.name,
+  category: "business",
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    siteName: SITE.name,
+    title: SITE.title,
+    description: SITE.description,
+    locale: SITE.locale,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE.title,
+    description: SITE.description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
+  },
+  /* Stops iOS turning revenue figures in the form into phone links. */
+  formatDetection: { telephone: false },
+}
+
+export const viewport: Viewport = {
+  themeColor: SITE.colors.background,
 }
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -30,7 +71,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     /* suppressHydrationWarning: the home page's intro script sets data-intro
        on <html> before React hydrates. See components/home/intro.tsx. */
     <html
-      lang="pt-BR"
+      lang={SITE.language}
       className={`${poppins.variable} h-full antialiased`}
       suppressHydrationWarning
     >

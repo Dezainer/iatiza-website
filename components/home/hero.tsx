@@ -966,6 +966,7 @@ const LockedWordmark: FC<PropsWithChildren> = ({ children }) => {
         <button
           type="button"
           onClick={toggle}
+          data-llms-skip
           className="intro-hint flex cursor-pointer items-center gap-2 font-medium text-lg text-primary text-left md:absolute md:top-0 md:left-(--hint-x) md:mt-(--hint-y) md:-translate-y-1/2 max-md:col-start-1 max-md:row-start-1 max-md:flex-col max-md:self-end max-md:justify-self-center max-md:pb-8 max-md:text-center"
           style={
             {

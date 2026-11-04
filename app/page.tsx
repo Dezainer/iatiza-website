@@ -1,5 +1,6 @@
 import Footer from "@/components/app/footer"
 import Header from "@/components/app/header"
+import StructuredData from "@/components/app/structured-data"
 import Cases from "@/components/home/cases"
 import Form from "@/components/home/form"
 import GraphLine from "@/components/home/graph-line"
@@ -13,6 +14,7 @@ import Team from "@/components/home/team"
 export default function Home() {
   return (
     <>
+      <StructuredData />
       <IntroGate />
       <Header />
       {/* The graph runs behind both sections, so it is anchored to the pair of

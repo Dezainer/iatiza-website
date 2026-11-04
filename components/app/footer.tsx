@@ -1,17 +1,18 @@
 import Logo from "@/components/app/logo"
 import { SiInstagram, SiWhatsapp } from "@icons-pack/react-simple-icons"
 import { FC } from "react"
+import { SITE } from "@/lib/site"
 
 const Footer: FC = () => (
   <div className="bg-foreground pt-20 md:pt-36">
     <div className="container flex flex-col items-center">
       <div className="flex gap-6 md:gap-12 items-center">
         <span className="text-background text-xl md:text-2xl">
-          Consultoria Inteligente.
+          {SITE.tagline}
         </span>
         <div className="flex items-center gap-6 md:gap-8 text-background">
           <a
-            href="https://www.instagram.com/iatiza.consult/"
+            href={SITE.social.instagram}
             target="_blank"
             rel="noreferrer"
             aria-label="Instagram"
@@ -20,7 +21,7 @@ const Footer: FC = () => (
             <SiInstagram className="size-6" />
           </a>
           <a
-            href="https://wa.me/554699170048"
+            href={SITE.social.whatsapp}
             target="_blank"
             rel="noreferrer"
             aria-label="WhatsApp"
