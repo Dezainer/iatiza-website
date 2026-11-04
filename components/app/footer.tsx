@@ -11,7 +11,7 @@ const Footer: FC = () => (
         </span>
         <div className="flex items-center gap-8 text-background">
           <a
-            href="https://instagram.com/"
+            href="https://www.instagram.com/iatiza.consult/"
             target="_blank"
             rel="noreferrer"
             aria-label="Instagram"
@@ -20,7 +20,7 @@ const Footer: FC = () => (
             <SiInstagram className="size-6" />
           </a>
           <a
-            href="https://wa.me/"
+            href="https://wa.me/554699170048"
             target="_blank"
             rel="noreferrer"
             aria-label="WhatsApp"

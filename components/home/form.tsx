@@ -2,7 +2,16 @@
 
 import Button from "@/components/app/button"
 import Glass from "@/components/app/glass"
-import { FC, PropsWithChildren, useState } from "react"
+import confetti from "canvas-confetti"
+import { AnimatePresence, motion } from "motion/react"
+import {
+  FC,
+  PropsWithChildren,
+  useActionState,
+  useEffect,
+  useState,
+} from "react"
+import { FormState, submitContact } from "@/actions/contact"
 
 /* -------------------------------------------------------------------------
  * The questions
@@ -10,8 +19,7 @@ import { FC, PropsWithChildren, useState } from "react"
  * Both are single-select, so they are built on real radio inputs rather than
  * click handlers on divs. The input is visually hidden and the Glass plate is
  * the visible control, which costs nothing and hands us exclusivity within a
- * group, arrow-key navigation, focus, and a working payload the day this is
- * wrapped in a real <form>.
+ * group, arrow-key navigation, focus, and the payload the server action reads.
  *
  * The option lists are `as const`, so the state below is typed to the answers
  * that actually exist — a typo in a value is a compile error, not a silently
@@ -101,9 +109,53 @@ const OptionGroup = <T extends string>({
   </div>
 )
 
+/* -------------------------------------------------------------------------
+ * Celebration
+ *
+ * Two bursts from the bottom corners, in the brand blue plus white so they
+ * read on both the dark form and the light sections. canvas-confetti skips
+ * itself under prefers-reduced-motion; the toast still says it in words.
+ * ---------------------------------------------------------------------- */
+
+const CONFETTI_COLORS = ["#2937fd", "#ffffff", "#8a92ff"]
+
+const celebrate = () => {
+  const shared = {
+    particleCount: 90,
+    spread: 70,
+    startVelocity: 60,
+    colors: CONFETTI_COLORS,
+    disableForReducedMotion: true,
+  }
+  confetti({ ...shared, angle: 60, origin: { x: 0, y: 1 } })
+  confetti({ ...shared, angle: 120, origin: { x: 1, y: 1 } })
+}
+
+const TOAST_MS = 5000
+
 const Form: FC = () => {
   const [headcount, setHeadcount] = useState<Headcount>(HEADCOUNT[0])
   const [revenue, setRevenue] = useState<Revenue>(REVENUE[0])
+  const [toast, setToast] = useState(false)
+  // Celebrating from the action rather than an effect on `state` ties it to
+  // the submission itself, so it fires once per success and never on render.
+  const [state, formAction, pending] = useActionState<FormState, FormData>(
+    async (prev, formData) => {
+      const next = await submitContact(prev, formData)
+      if (next.status === "success") {
+        celebrate()
+        setToast(true)
+      }
+      return next
+    },
+    { status: "idle" },
+  )
+
+  useEffect(() => {
+    if (!toast) return
+    const timeout = setTimeout(() => setToast(false), TOAST_MS)
+    return () => clearTimeout(timeout)
+  }, [toast])
 
   return (
     <div id="contato" className="bg-foreground">
@@ -119,7 +171,7 @@ const Form: FC = () => {
           compromisso, sem enrolação,{" "}
           <b>só uma conversa pra entender se e como podemos ajudar</b>.
         </p>
-        <div className="w-3/5 flex flex-col gap-9 pt-12">
+        <form action={formAction} className="w-3/5 flex flex-col gap-9 pt-12">
           <div className="flex flex-col gap-2">
             <h4
               id="headcount-question"
@@ -153,20 +205,68 @@ const Form: FC = () => {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <h4 className="text-2xl font-bold text-background">
+            <h4
+              id="email-question"
+              className="text-2xl font-bold text-background"
+            >
               Seu melhor <span className="text-primary">email</span>:
             </h4>
             <div className="flex gap-4">
               <Glass className="flex-1">
                 <input
+                  type="email"
+                  name="email"
+                  required
+                  autoComplete="email"
+                  aria-labelledby="email-question"
                   className="w-full h-full text-background"
                   placeholder="fui@iatizado.ia"
                 />
               </Glass>
-              <Button>IATIZAR MINHA EMPRESA</Button>
+              <Button disabled={pending}>
+                {/* Both labels share one grid cell, so the button is always as
+                    wide as the longer one and swapping them moves nothing. */}
+                <span className="grid">
+                  <span
+                    className={`col-start-1 row-start-1 ${pending ? "invisible" : ""}`}
+                  >
+                    IATIZAR MINHA EMPRESA
+                  </span>
+                  <span
+                    aria-hidden={!pending}
+                    className={`col-start-1 row-start-1 ${pending ? "" : "invisible"}`}
+                  >
+                    ENVIANDO...
+                  </span>
+                </span>
+              </Button>
             </div>
+            <p
+              aria-live="polite"
+              className="text-sm font-bold min-h-5 text-primary"
+            >
+              {state.status === "error" ? state.message : null}
+            </p>
           </div>
-        </div>
+        </form>
+      </div>
+      <div
+        role="status"
+        className="fixed inset-x-0 bottom-8 z-50 flex justify-center pointer-events-none"
+      >
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: 24, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 24, scale: 0.95 }}
+              transition={{ type: "spring", stiffness: 400, damping: 30 }}
+              className="pointer-events-auto bg-primary text-background font-bold py-4 px-6 rounded-lg shadow-2xl"
+            >
+              Sua IATIZAção foi encomendada!
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   )

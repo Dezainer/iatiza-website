@@ -28,15 +28,15 @@ type Teammate = {
    on the outer edges on purpose: their photos are not cut off at the sides,
    so they suit the slots that bleed past the screen. */
 const LEFT: Teammate[] = [
-  { name: "Cristina", title: "Título aqui", picture: cristina },
-  { name: "Dionisio", title: "Título aqui", picture: dionisio },
-  { name: "Eduardo", title: "Título aqui", picture: eduardo },
+  { name: "Cristina", title: "Estrategista de Algoritmos", picture: cristina },
+  { name: "Dionisio", title: "Chefe de Iatização", picture: dionisio },
+  { name: "Eduardo", title: "Detetive de Gargalos", picture: eduardo },
 ]
 
 const RIGHT: Teammate[] = [
-  { name: "Geovane", title: "Título aqui", picture: geovane },
-  { name: "Kassio", title: "Título aqui", picture: kassio },
-  { name: "Letícia", title: "Título aqui", picture: leticia },
+  { name: "Geovane", title: "Piloto de Agentes", picture: geovane },
+  { name: "Kassio", title: "Cientista de Hipóteses", picture: kassio },
+  { name: "Letícia", title: "Poeta dos Prompts", picture: leticia },
 ]
 
 /**
